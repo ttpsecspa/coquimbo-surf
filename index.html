@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SurfCoquimbo - Olas, Clima e Indicadores de Surf</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏄</text></svg>">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+    :root {
+      --ocean-dark: #0a1628;
+      --ocean-mid: #0f2847;
+      --ocean-light: #1a4a7a;
+      --surf-cyan: #00d4ff;
+      --surf-teal: #00b4d8;
+      --surf-green: #06d6a0;
+      --surf-yellow: #ffd166;
+      --surf-orange: #ff8c42;
+      --surf-red: #ef476f;
+      --sand: #f4e8c1;
+      --white: #ffffff;
+      --glass: rgba(255, 255, 255, 0.06);
+      --glass-border: rgba(255, 255, 255, 0.1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--ocean-dark);
+      color: var(--white);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated ocean background */
+    .ocean-bg {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 0;
+      background: linear-gradient(180deg, #0a1628 0%, #0f2847 40%, #1a4a7a 70%, #0f2847 100%);
+    }
+
+    .wave-layer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 200%;
+      height: 120px;
+      opacity: 0.15;
+    }
+
+    .wave-layer:nth-child(1) {
+      animation: wave 8s linear infinite;
+      background: repeating-linear-gradient(90deg, transparent, transparent 100px, var(--surf-cyan) 100px, var(--surf-cyan) 200px);
+      clip-path: polygon(0% 60%, 2% 55%, 5% 50%, 8% 48%, 12% 50%, 15% 55%, 18% 60%, 22% 58%, 25% 52%, 28% 48%, 32% 50%, 35% 55%, 38% 60%, 42% 58%, 45% 52%, 48% 48%, 52% 50%, 55% 55%, 58% 60%, 62% 58%, 65% 52%, 68% 48%, 72% 50%, 75% 55%, 78% 60%, 82% 58%, 85% 52%, 88% 48%, 92% 50%, 95% 55%, 98% 60%, 100% 58%, 100% 100%, 0% 100%);
+    }
+
+    .wave-layer:nth-child(2) {
+      animation: wave 12s linear infinite reverse;
+      bottom: -10px;
+      opacity: 0.1;
+      background: repeating-linear-gradient(90deg, transparent, transparent 150px, var(--surf-teal) 150px, var(--surf-teal) 300px);
+      clip-path: polygon(0% 65%, 3% 58%, 7% 52%, 10% 50%, 14% 52%, 17% 58%, 20% 65%, 24% 60%, 27% 54%, 30% 50%, 34% 52%, 37% 58%, 40% 65%, 44% 60%, 47% 54%, 50% 50%, 54% 52%, 57% 58%, 60% 65%, 64% 60%, 67% 54%, 70% 50%, 74% 52%, 77% 58%, 80% 65%, 84% 60%, 87% 54%, 90% 50%, 94% 52%, 97% 58%, 100% 65%, 100% 100%, 0% 100%);
+    }
+
+    @keyframes wave {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      padding: 30px 0 20px;
+    }
+
+    .header h1 {
+      font-size: 2.8rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--surf-cyan), var(--surf-green));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -1px;
+    }
+
+    .header .subtitle {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.95rem;
+      margin-top: 4px;
+      font-weight: 300;
+    }
+
+    .header .location {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      padding: 6px 16px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      color: var(--surf-cyan);
+    }
+
+    /* Spot selector */
+    .spot-selector {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .spot-btn {
+      padding: 8px 18px;
+      border: 1px solid var(--glass-border);
+      background: var(--glass);
+      color: rgba(255,255,255,0.6);
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s;
+    }
+
+    .spot-btn:hover { border-color: var(--surf-cyan); color: var(--white); }
+    .spot-btn.active {
+      background: linear-gradient(135deg, var(--surf-cyan), var(--surf-teal));
+      color: var(--ocean-dark);
+      border-color: transparent;
+      font-weight: 600;
+    }
+
+    /* Surf Score */
+    .surf-score-section {
+      text-align: center;
+      margin: 25px 0;
+    }
+
+    .surf-score-ring {
+      position: relative;
+      display: inline-block;
+      width: 180px;
+      height: 180px;
+    }
+
+    .surf-score-ring svg {
+      transform: rotate(-90deg);
+    }
+
+    .score-bg { stroke: rgba(255,255,255,0.08); }
+    .score-fill {
+      transition: stroke-dashoffset 1s ease, stroke 0.5s;
+      stroke-linecap: round;
+    }
+
+    .score-label {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .score-value {
+      font-size: 3rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .score-text {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.5);
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .score-desc {
+      margin-top: 10px;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    /* Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+
+    .card {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 24px;
+      transition: transform 0.2s, border-color 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(0, 212, 255, 0.3);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+    }
+
+    .card-title {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .metric-row:last-child { border-bottom: none; }
+
+    .metric-label {
+      color: rgba(255,255,255,0.6);
+      font-size: 0.9rem;
+    }
+
+    .metric-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .metric-big {
+      font-size: 2.5rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .metric-unit {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.4);
+      font-weight: 400;
+    }
+
+    /* Wind direction compass */
+    .compass {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.15);
+      position: relative;
+      margin: 10px auto;
+    }
+
+    .compass-arrow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 4px;
+      height: 34px;
+      margin-left: -2px;
+      margin-top: -34px;
+      transform-origin: bottom center;
+      transition: transform 1s ease;
+    }
+
+    .compass-arrow::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-bottom: 14px solid var(--surf-cyan);
+    }
+
+    .compass-arrow::after {
+      content: '';
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2px;
+      height: 20px;
+      background: var(--surf-cyan);
+    }
+
+    .compass-labels {
+      position: absolute;
+      inset: -2px;
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .compass-labels span {
+      position: absolute;
+    }
+
+    .compass-labels .n { top: 2px; left: 50%; transform: translateX(-50%); }
+    .compass-labels .s { bottom: 2px; left: 50%; transform: translateX(-50%); }
+    .compass-labels .e { right: 4px; top: 50%; transform: translateY(-50%); }
+    .compass-labels .w { left: 4px; top: 50%; transform: translateY(-50%); }
+
+    /* Tide chart */
+    .tide-chart {
+      width: 100%;
+      height: 120px;
+      margin-top: 10px;
+    }
+
+    /* Hourly forecast */
+    .hourly-scroll {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 10px 0;
+      scrollbar-width: thin;
+      scrollbar-color: var(--surf-cyan) transparent;
+    }
+
+    .hourly-scroll::-webkit-scrollbar { height: 4px; }
+    .hourly-scroll::-webkit-scrollbar-track { background: transparent; }
+    .hourly-scroll::-webkit-scrollbar-thumb { background: var(--surf-cyan); border-radius: 2px; }
+
+    .hourly-item {
+      flex: 0 0 70px;
+      text-align: center;
+      padding: 12px 8px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      border: 1px solid transparent;
+      transition: border-color 0.3s;
+    }
+
+    .hourly-item.now {
+      border-color: var(--surf-cyan);
+      background: rgba(0, 212, 255, 0.08);
+    }
+
+    .hourly-time {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 6px;
+    }
+
+    .hourly-wave {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .hourly-wind {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.4);
+      margin-top: 4px;
+    }
+
+    /* 7-day forecast */
+    .forecast-day {
+      display: grid;
+      grid-template-columns: 80px 1fr 80px 80px;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      gap: 10px;
+    }
+
+    .forecast-day:last-child { border-bottom: none; }
+
+    .forecast-day-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .forecast-bar-container {
+      height: 8px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .forecast-bar {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 1s ease;
+    }
+
+    .forecast-wave, .forecast-wind {
+      text-align: right;
+      font-size: 0.85rem;
+    }
+
+    .forecast-wave { font-weight: 700; }
+    .forecast-wind { color: rgba(255,255,255,0.5); }
+
+    /* Indicator badges */
+    .indicator-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .indicator {
+      text-align: center;
+      padding: 14px 8px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+    }
+
+    .indicator-emoji { font-size: 1.5rem; margin-bottom: 4px; }
+
+    .indicator-label {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .indicator-value {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    /* Status badges */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-epic { background: rgba(6, 214, 160, 0.2); color: var(--surf-green); }
+    .badge-good { background: rgba(0, 180, 216, 0.2); color: var(--surf-teal); }
+    .badge-fair { background: rgba(255, 209, 102, 0.2); color: var(--surf-yellow); }
+    .badge-poor { background: rgba(239, 71, 111, 0.2); color: var(--surf-red); }
+
+    /* Full width card */
+    .card-full {
+      grid-column: 1 / -1;
+    }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 60px;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: var(--surf-cyan);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text {
+      color: rgba(255,255,255,0.4);
+      font-size: 0.9rem;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 30px 0;
+      color: rgba(255,255,255,0.3);
+      font-size: 0.8rem;
+    }
+
+    .footer a { color: var(--surf-cyan); text-decoration: none; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header h1 { font-size: 2rem; }
+      .grid { grid-template-columns: 1fr; }
+      .forecast-day { grid-template-columns: 60px 1fr 60px 60px; }
+      .app { padding: 12px; }
+      .card { padding: 18px; }
+    }
+
+    /* Refresh button */
+    .refresh-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--surf-cyan), var(--surf-teal));
+      border: none;
+      color: var(--ocean-dark);
+      font-size: 1.3rem;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+      transition: transform 0.3s;
+      z-index: 10;
+    }
+
+    .refresh-btn:hover { transform: scale(1.1); }
+    .refresh-btn.spinning { animation: spin 0.8s linear infinite; }
+
+    /* Last updated */
+    .last-updated {
+      text-align: center;
+      color: rgba(255,255,255,0.3);
+      font-size: 0.75rem;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="ocean-bg">
+    <div class="wave-layer"></div>
+    <div class="wave-layer"></div>
+  </div>
+
+  <div class="app" id="app">
+    <header class="header">
+      <h1>SurfCoquimbo</h1>
+      <p class="subtitle">Olas, clima e indicadores de surf en tiempo real</p>
+      <div class="location">
+        <span>📍</span>
+        <span id="spot-name">Coquimbo, Chile</span>
+        <span>• -29.95° S, -71.34° W</span>
+      </div>
+    </header>
+
+    <div class="spot-selector" id="spot-selector">
+      <button class="spot-btn active" data-lat="-29.95" data-lon="-71.34" data-name="Playa La Herradura">La Herradura</button>
+      <button class="spot-btn" data-lat="-29.97" data-lon="-71.35" data-name="Playa Peñuelas">Peñuelas</button>
+      <button class="spot-btn" data-lat="-30.09" data-lon="-71.37" data-name="Totoralillo">Totoralillo</button>
+      <button class="spot-btn" data-lat="-29.91" data-lon="-71.30" data-name="Playa El Faro">El Faro</button>
+      <button class="spot-btn" data-lat="-30.40" data-lon="-71.70" data-name="Punta de Choros">Punta de Choros</button>
+    </div>
+
+    <div id="content">
+      <div class="loading">
+        <div class="spinner"></div>
+        <p class="loading-text">Cargando datos del oceano...</p>
+      </div>
+    </div>
+  </div>
+
+  <button class="refresh-btn" id="refresh-btn" title="Actualizar datos">↻</button>
+
+  <script>
+    // Surf spots config
+    const SPOTS = {
+      'La Herradura': { lat: -29.95, lon: -71.34, facing: 'W', bestWind: 'E', type: 'beach break' },
+      'Peñuelas': { lat: -29.97, lon: -71.35, facing: 'NW', bestWind: 'SE', type: 'beach break' },
+      'Totoralillo': { lat: -30.09, lon: -71.37, facing: 'W', bestWind: 'E', type: 'point break' },
+      'El Faro': { lat: -29.91, lon: -71.30, facing: 'W', bestWind: 'E', type: 'reef break' },
+      'Punta de Choros': { lat: -30.40, lon: -71.70, facing: 'NW', bestWind: 'SE', type: 'point break' },
+    };
+
+    let currentSpot = 'La Herradura';
+    let currentData = null;
+
+    // Spot selector
+    document.getElementById('spot-selector').addEventListener('click', (e) => {
+      const btn = e.target.closest('.spot-btn');
+      if (!btn) return;
+      document.querySelectorAll('.spot-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const name = btn.textContent.trim();
+      currentSpot = name;
+      document.getElementById('spot-name').textContent = btn.dataset.name + ', Coquimbo';
+      fetchData(parseFloat(btn.dataset.lat), parseFloat(btn.dataset.lon));
+    });
+
+    // Refresh
+    document.getElementById('refresh-btn').addEventListener('click', () => {
+      const spot = SPOTS[currentSpot];
+      const btn = document.getElementById('refresh-btn');
+      btn.classList.add('spinning');
+      fetchData(spot.lat, spot.lon).finally(() => {
+        setTimeout(() => btn.classList.remove('spinning'), 500);
+      });
+    });
+
+    async function fetchData(lat, lon) {
+      const content = document.getElementById('content');
+      content.innerHTML = `<div class="loading"><div class="spinner"></div><p class="loading-text">Cargando datos del oceano...</p></div>`;
+
+      try {
+        const [marineRes, weatherRes] = await Promise.all([
+          fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&hourly=wave_height,wave_direction,wave_period,swell_wave_height,swell_wave_direction,swell_wave_period&daily=wave_height_max,wave_direction_dominant,wave_period_max&timezone=America/Santiago&forecast_days=7`),
+          fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,windspeed_10m,winddirection_10m,weathercode,uv_index&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&current=temperature_2m,windspeed_10m,winddirection_10m,weathercode,uv_index&timezone=America/Santiago&forecast_days=7`)
+        ]);
+
+        const marine = await marineRes.json();
+        const weather = await weatherRes.json();
+
+        currentData = { marine, weather };
+        renderDashboard(marine, weather);
+      } catch (err) {
+        content.innerHTML = `<div class="loading"><p class="loading-text">Error al cargar datos. Verifica tu conexion.</p><p class="loading-text" style="margin-top:8px;font-size:0.75rem;color:rgba(255,255,255,0.2)">${err.message}</p></div>`;
+      }
+    }
+
+    function getWindName(deg) {
+      const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+      return dirs[Math.round(deg / 22.5) % 16];
+    }
+
+    function getSurfScore(waveHeight, wavePeriod, windSpeed, windDir) {
+      const spot = SPOTS[currentSpot];
+      let score = 0;
+
+      // Wave height score (0-30)
+      if (waveHeight >= 0.5 && waveHeight <= 3.0) {
+        score += Math.min(30, waveHeight * 15);
+      } else if (waveHeight > 3.0) {
+        score += Math.max(0, 30 - (waveHeight - 3) * 10);
+      }
+
+      // Wave period score (0-30)
+      score += Math.min(30, wavePeriod * 2.5);
+
+      // Wind score (0-25) - offshore is best
+      const windDirName = getWindName(windDir);
+      const isOffshore = spot.bestWind.includes(windDirName[0]);
+      if (windSpeed < 5) score += 25;
+      else if (windSpeed < 15 && isOffshore) score += 20;
+      else if (windSpeed < 15) score += 10;
+      else if (windSpeed < 25) score += 5;
+
+      // Period bonus (0-15)
+      if (wavePeriod > 10) score += 15;
+      else if (wavePeriod > 7) score += 10;
+      else if (wavePeriod > 5) score += 5;
+
+      return Math.min(100, Math.round(score));
+    }
+
+    function getScoreColor(score) {
+      if (score >= 75) return 'var(--surf-green)';
+      if (score >= 50) return 'var(--surf-teal)';
+      if (score >= 30) return 'var(--surf-yellow)';
+      return 'var(--surf-red)';
+    }
+
+    function getScoreLabel(score) {
+      if (score >= 75) return 'EPICO';
+      if (score >= 50) return 'BUENO';
+      if (score >= 30) return 'REGULAR';
+      return 'MALO';
+    }
+
+    function getScoreBadgeClass(score) {
+      if (score >= 75) return 'badge-epic';
+      if (score >= 50) return 'badge-good';
+      if (score >= 30) return 'badge-fair';
+      return 'badge-poor';
+    }
+
+    function getWeatherIcon(code) {
+      if (code <= 1) return '☀️';
+      if (code <= 3) return '⛅';
+      if (code <= 48) return '🌫️';
+      if (code <= 67) return '🌧️';
+      if (code <= 77) return '🌨️';
+      if (code <= 82) return '🌦️';
+      return '⛈️';
+    }
+
+    function formatTime(isoStr) {
+      return new Date(isoStr).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function getDayName(isoStr, i) {
+      if (i === 0) return 'Hoy';
+      if (i === 1) return 'Mañana';
+      return new Date(isoStr).toLocaleDateString('es-CL', { weekday: 'short' }).replace('.', '');
+    }
+
+    function renderDashboard(marine, weather) {
+      const now = new Date();
+      const currentHour = now.getHours();
+      const todayStr = now.toISOString().split('T')[0];
+
+      // Find current hour index
+      let currentIdx = 0;
+      if (marine.hourly && marine.hourly.time) {
+        for (let i = 0; i < marine.hourly.time.length; i++) {
+          if (new Date(marine.hourly.time[i]).getHours() === currentHour &&
+              marine.hourly.time[i].startsWith(todayStr)) {
+            currentIdx = i;
+            break;
+          }
+        }
+      }
+
+      const waveHeight = marine.hourly?.wave_height?.[currentIdx] ?? 0;
+      const waveDir = marine.hourly?.wave_direction?.[currentIdx] ?? 0;
+      const wavePeriod = marine.hourly?.wave_period?.[currentIdx] ?? 0;
+      const swellHeight = marine.hourly?.swell_wave_height?.[currentIdx] ?? 0;
+      const swellDir = marine.hourly?.swell_wave_direction?.[currentIdx] ?? 0;
+      const swellPeriod = marine.hourly?.swell_wave_period?.[currentIdx] ?? 0;
+
+      const temp = weather.current?.temperature_2m ?? 0;
+      const windSpeed = weather.current?.windspeed_10m ?? 0;
+      const windDir = weather.current?.winddirection_10m ?? 0;
+      const weatherCode = weather.current?.weathercode ?? 0;
+      const uvIndex = weather.current?.uv_index ?? 0;
+
+      const surfScore = getSurfScore(waveHeight, wavePeriod, windSpeed, windDir);
+      const scoreColor = getScoreColor(surfScore);
+      const circumference = 2 * Math.PI * 72;
+      const offset = circumference - (surfScore / 100) * circumference;
+
+      const spot = SPOTS[currentSpot];
+      const windDirName = getWindName(windDir);
+      const waveDirName = getWindName(waveDir);
+      const isOffshore = spot.bestWind.includes(windDirName[0]);
+
+      // Build hourly forecast (next 24h)
+      let hourlyHtml = '';
+      for (let i = currentIdx; i < Math.min(currentIdx + 24, (marine.hourly?.time?.length || 0)); i++) {
+        const h = new Date(marine.hourly.time[i]).getHours();
+        const wh = marine.hourly.wave_height?.[i] ?? 0;
+        const ws = weather.hourly?.windspeed_10m?.[i] ?? 0;
+        const isNow = i === currentIdx;
+        hourlyHtml += `
+          <div class="hourly-item ${isNow ? 'now' : ''}">
+            <div class="hourly-time">${isNow ? 'Ahora' : h + ':00'}</div>
+            <div class="hourly-wave" style="color:${getScoreColor(getSurfScore(wh, marine.hourly.wave_period?.[i] ?? 0, ws, weather.hourly?.winddirection_10m?.[i] ?? 0))}">${wh.toFixed(1)}m</div>
+            <div class="hourly-wind">${ws.toFixed(0)} km/h</div>
+          </div>`;
+      }
+
+      // 7-day forecast
+      let forecastHtml = '';
+      const maxWaveDaily = Math.max(...(marine.daily?.wave_height_max || [1]));
+      for (let i = 0; i < (marine.daily?.time?.length || 0); i++) {
+        const dayWave = marine.daily.wave_height_max?.[i] ?? 0;
+        const dayWaveDir = marine.daily.wave_direction_dominant?.[i] ?? 0;
+        const barWidth = (dayWave / maxWaveDaily) * 100;
+        const dayWindMax = Math.max(...(weather.hourly?.windspeed_10m?.slice(i * 24, (i + 1) * 24) || [0]));
+
+        forecastHtml += `
+          <div class="forecast-day">
+            <div class="forecast-day-name">${getDayName(marine.daily.time[i], i)}</div>
+            <div class="forecast-bar-container">
+              <div class="forecast-bar" style="width:${barWidth}%;background:${getScoreColor(getSurfScore(dayWave, marine.daily.wave_period_max?.[i] ?? 0, dayWindMax, dayWaveDir))}"></div>
+            </div>
+            <div class="forecast-wave">${dayWave.toFixed(1)} m</div>
+            <div class="forecast-wind">${getWindName(dayWaveDir)}</div>
+          </div>`;
+      }
+
+      // Water temp estimate for Coquimbo (seasonal approx)
+      const month = now.getMonth();
+      const waterTemps = [18, 19, 18, 17, 16, 14, 13, 13, 13, 14, 15, 17];
+      const waterTemp = waterTemps[month];
+
+      // Suit recommendation
+      let suitRec = '';
+      if (waterTemp >= 20) suitRec = 'Lycra / Spring suit';
+      else if (waterTemp >= 17) suitRec = 'Traje 3/2mm';
+      else if (waterTemp >= 14) suitRec = 'Traje 4/3mm';
+      else suitRec = 'Traje 4/3mm + botas';
+
+      const sunrise = weather.daily?.sunrise?.[0] ? formatTime(weather.daily.sunrise[0]) : '--';
+      const sunset = weather.daily?.sunset?.[0] ? formatTime(weather.daily.sunset[0]) : '--';
+
+      document.getElementById('content').innerHTML = `
+        <!-- Surf Score -->
+        <div class="surf-score-section">
+          <div class="surf-score-ring">
+            <svg width="180" height="180">
+              <circle class="score-bg" cx="90" cy="90" r="72" fill="none" stroke-width="10" />
+              <circle class="score-fill" cx="90" cy="90" r="72" fill="none" stroke-width="10"
+                stroke="${scoreColor}"
+                stroke-dasharray="${circumference}"
+                stroke-dashoffset="${offset}" />
+            </svg>
+            <div class="score-label">
+              <div class="score-value" style="color:${scoreColor}">${surfScore}</div>
+              <div class="score-text">Surf Score</div>
+            </div>
+          </div>
+          <div class="score-desc">
+            <span class="badge ${getScoreBadgeClass(surfScore)}">${getScoreLabel(surfScore)}</span>
+            para surfear en ${currentSpot}
+          </div>
+        </div>
+
+        <div class="grid">
+          <!-- Olas -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon" style="background:rgba(0,212,255,0.15)">🌊</div>
+              <div class="card-title">Oleaje Actual</div>
+            </div>
+            <div style="text-align:center;margin-bottom:14px">
+              <span class="metric-big" style="color:var(--surf-cyan)">${waveHeight.toFixed(1)}</span>
+              <span class="metric-unit">m</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Periodo</span>
+              <span class="metric-value">${wavePeriod.toFixed(0)} <span class="metric-unit">seg</span></span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Direccion</span>
+              <span class="metric-value">${waveDirName} (${waveDir}°)</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Swell</span>
+              <span class="metric-value">${swellHeight.toFixed(1)}m @ ${swellPeriod.toFixed(0)}s ${getWindName(swellDir)}</span>
+            </div>
+          </div>
+
+          <!-- Viento -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon" style="background:rgba(255,209,102,0.15)">💨</div>
+              <div class="card-title">Viento</div>
+            </div>
+            <div style="text-align:center;margin-bottom:8px">
+              <span class="metric-big" style="color:${isOffshore ? 'var(--surf-green)' : 'var(--surf-orange)'}">${windSpeed.toFixed(0)}</span>
+              <span class="metric-unit">km/h</span>
+            </div>
+            <div style="text-align:center;margin-bottom:8px">
+              <span class="badge ${isOffshore ? 'badge-epic' : 'badge-poor'}">${isOffshore ? 'OFFSHORE' : 'ONSHORE'}</span>
+            </div>
+            <div class="compass">
+              <div class="compass-arrow" style="transform: rotate(${windDir}deg)"></div>
+              <div class="compass-labels">
+                <span class="n">N</span>
+                <span class="s">S</span>
+                <span class="e">E</span>
+                <span class="w">W</span>
+              </div>
+            </div>
+            <div style="text-align:center;margin-top:8px">
+              <span class="metric-value">${windDirName}</span>
+              <span class="metric-unit">(${windDir}°)</span>
+            </div>
+          </div>
+
+          <!-- Clima -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon" style="background:rgba(6,214,160,0.15)">🌡️</div>
+              <div class="card-title">Clima</div>
+            </div>
+            <div style="text-align:center;margin-bottom:14px">
+              <span style="font-size:2rem">${getWeatherIcon(weatherCode)}</span>
+              <span class="metric-big" style="margin-left:8px">${temp.toFixed(0)}</span>
+              <span class="metric-unit">°C</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Max / Min</span>
+              <span class="metric-value">${weather.daily?.temperature_2m_max?.[0]?.toFixed(0) ?? '--'}° / ${weather.daily?.temperature_2m_min?.[0]?.toFixed(0) ?? '--'}°</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Agua</span>
+              <span class="metric-value" style="color:var(--surf-teal)">~${waterTemp}°C</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">UV</span>
+              <span class="metric-value" style="color:${uvIndex > 8 ? 'var(--surf-red)' : uvIndex > 5 ? 'var(--surf-orange)' : 'var(--surf-green)'}">${uvIndex.toFixed(0)} <span class="metric-unit">${uvIndex > 8 ? 'Muy alto' : uvIndex > 5 ? 'Alto' : 'Moderado'}</span></span>
+            </div>
+          </div>
+
+          <!-- Indicadores de Surf -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon" style="background:rgba(0,180,216,0.15)">🏄</div>
+              <div class="card-title">Indicadores</div>
+            </div>
+            <div class="indicator-grid">
+              <div class="indicator">
+                <div class="indicator-emoji">🌅</div>
+                <div class="indicator-label">Amanecer</div>
+                <div class="indicator-value">${sunrise}</div>
+              </div>
+              <div class="indicator">
+                <div class="indicator-emoji">🌇</div>
+                <div class="indicator-label">Atardecer</div>
+                <div class="indicator-value">${sunset}</div>
+              </div>
+              <div class="indicator">
+                <div class="indicator-emoji">🤿</div>
+                <div class="indicator-label">Traje</div>
+                <div class="indicator-value" style="font-size:0.8rem">${suitRec}</div>
+              </div>
+              <div class="indicator">
+                <div class="indicator-emoji">📍</div>
+                <div class="indicator-label">Tipo</div>
+                <div class="indicator-value" style="font-size:0.8rem;text-transform:capitalize">${spot.type}</div>
+              </div>
+              <div class="indicator">
+                <div class="indicator-emoji">🧭</div>
+                <div class="indicator-label">Orientacion</div>
+                <div class="indicator-value">${spot.facing}</div>
+              </div>
+              <div class="indicator">
+                <div class="indicator-emoji">🎯</div>
+                <div class="indicator-label">Mejor viento</div>
+                <div class="indicator-value">${spot.bestWind}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pronostico horario -->
+          <div class="card card-full">
+            <div class="card-header">
+              <div class="card-icon" style="background:rgba(0,212,255,0.15)">⏱️</div>
+              <div class="card-title">Pronostico Horario (Proximas 24h)</div>
+            </div>
+            <div class="hourly-scroll">${hourlyHtml}</div>
+          </div>
+
+          <!-- 7-day forecast -->
+          <div class="card card-full">
+            <div class="card-header">
+              <div class="card-icon" style="background:rgba(6,214,160,0.15)">📅</div>
+              <div class="card-title">Pronostico 7 Dias</div>
+            </div>
+            ${forecastHtml}
+          </div>
+        </div>
+
+        <div class="last-updated">Actualizado: ${now.toLocaleString('es-CL')}</div>
+
+        <footer class="footer">
+          <p>SurfCoquimbo &mdash; Datos de <a href="https://open-meteo.com" target="_blank">Open-Meteo</a></p>
+          <p style="margin-top:4px">Hecho con amor para la comunidad surfera de Coquimbo 🤙</p>
+        </footer>
+      `;
+    }
+
+    // Initial load
+    fetchData(-29.95, -71.34);
+  </script>
+</body>
+</html>
