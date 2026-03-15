@@ -562,8 +562,7 @@
     </header>
 
     <div class="spot-selector" id="spot-selector">
-      <button class="spot-btn active" data-lat="-29.95" data-lon="-71.34" data-name="Playa La Herradura">La Herradura</button>
-      <button class="spot-btn" data-lat="-29.97" data-lon="-71.35" data-name="Playa Peñuelas">Peñuelas</button>
+      <button class="spot-btn active" data-lat="-29.97" data-lon="-71.35" data-name="Playa Peñuelas">Peñuelas</button>
       <button class="spot-btn" data-lat="-30.09" data-lon="-71.37" data-name="Totoralillo">Totoralillo</button>
       <button class="spot-btn" data-lat="-29.91" data-lon="-71.30" data-name="Playa El Faro">El Faro</button>
       <button class="spot-btn" data-lat="-30.40" data-lon="-71.70" data-name="Punta de Choros">Punta de Choros</button>
@@ -582,14 +581,13 @@
   <script>
     // Surf spots config
     const SPOTS = {
-      'La Herradura': { lat: -29.95, lon: -71.34, facing: 'W', bestWind: 'E', type: 'beach break' },
       'Peñuelas': { lat: -29.97, lon: -71.35, facing: 'NW', bestWind: 'SE', type: 'beach break' },
       'Totoralillo': { lat: -30.09, lon: -71.37, facing: 'W', bestWind: 'E', type: 'point break' },
       'El Faro': { lat: -29.91, lon: -71.30, facing: 'W', bestWind: 'E', type: 'reef break' },
       'Punta de Choros': { lat: -30.40, lon: -71.70, facing: 'NW', bestWind: 'SE', type: 'point break' },
     };
 
-    let currentSpot = 'La Herradura';
+    let currentSpot = 'Peñuelas';
     let currentData = null;
 
     // Spot selector
@@ -969,7 +967,7 @@
     }
 
     // Initial load
-    fetchData(-29.95, -71.34);
+    fetchData(-29.97, -71.35);
   </script>
 </body>
 </html>
