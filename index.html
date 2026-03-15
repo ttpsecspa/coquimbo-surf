@@ -505,7 +505,7 @@
     /* Indicator badges */
     .indicator-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: repeat(4, 1fr);
       gap: 10px;
     }
 
@@ -665,7 +665,7 @@
       .forecast-day { grid-template-columns: 60px 1fr 60px 60px; }
       .app { padding: 12px; }
       .card { padding: 18px; }
-      .indicator-grid { grid-template-columns: 1fr 1fr; }
+      .indicator-grid { grid-template-columns: repeat(2, 1fr); }
       .compare-grid { grid-template-columns: 1fr 1fr; }
     }
 
@@ -771,7 +771,7 @@
       <div class="location">
         <span>📍</span>
         <span id="spot-name">Totoralillo, Coquimbo</span>
-        <span>• Region de Coquimbo, Chile</span>
+        <span>• Región de Coquimbo, Chile</span>
       </div>
     </header>
 
@@ -782,11 +782,10 @@
     <div class="alert-banner" id="alert-banner"></div>
 
     <div class="spot-selector" id="spot-selector">
-      <button class="spot-btn active" data-lat="-30.0736" data-lon="-71.3791" data-name="Totoralillo">Totoralillo</button>
-      <button class="spot-btn" data-lat="-29.2430" data-lon="-71.4641" data-name="Punta de Choros">Punta de Choros</button>
-      <button class="spot-btn" data-lat="-29.9067" data-lon="-71.2747" data-name="Playa El Faro">El Faro</button>
-      <button class="spot-btn" data-lat="-30.2575" data-lon="-71.4925" data-name="Tongoy">Tongoy</button>
-      <button class="spot-btn" data-lat="-29.9593" data-lon="-71.2902" data-name="Playa Peñuelas">Peñuelas</button>
+      <button class="spot-btn active" data-lat="-30.0718" data-lon="-71.3768" data-name="Totoralillo">Totoralillo</button>
+      <button class="spot-btn" data-lat="-29.2430" data-lon="-71.4652" data-name="Punta de Choros">Punta de Choros</button>
+      <button class="spot-btn" data-lat="-29.9055" data-lon="-71.2761" data-name="El Faro">El Faro</button>
+      <button class="spot-btn" data-lat="-30.2611" data-lon="-71.4939" data-name="Tongoy">Tongoy</button>
     </div>
 
     <div class="tab-bar">
@@ -810,11 +809,10 @@
   <script>
     // ========== CONFIG ==========
     const SPOTS = {
-      'Totoralillo': { lat: -30.0736, lon: -71.3791, facing: 'W-SW', bestWind: 'ENE', bestSwell: 'WSW', type: 'point break', desc: 'Peninsula con 3 point breaks de roca: 2 derechas y 1 izquierda. Olas de calidad, rapidas y huecas. Mejor Mar-Jun.' },
-      'Punta de Choros': { lat: -29.2430, lon: -71.4641, facing: 'SW', bestWind: 'ESE', bestSwell: 'SW', type: 'beach break', desc: 'Beach break protegido con izquierdas y derechas. Consistente, poco crowd. Cuidado con corrientes y rocas.' },
-      'El Faro': { lat: -29.9067, lon: -71.2747, facing: 'NW-W', bestWind: 'ESE', bestSwell: 'NW', type: 'beach break', desc: 'Beach break junto al Faro Monumental. Necesita swell grande (6ft+). Bueno para aprender en dias chicos.' },
-      'Tongoy': { lat: -30.2575, lon: -71.4925, facing: 'W-NW', bestWind: 'ESE', bestSwell: 'WSW', type: 'beach break', desc: 'Playa Grande (26km) expuesta al oceano. Beach break con swell del W-SW. Spot secundario pero funcional.' },
-      'Peñuelas': { lat: -29.9593, lon: -71.2902, facing: 'NW-N', bestWind: 'SSE', bestSwell: 'NW', type: 'beach break', desc: 'Bahia protegida, olas chicas. Ideal para bodyboard, SUP y principiantes. Funciona con swell NW grande.' },
+      'Totoralillo': { lat: -30.0718, lon: -71.3768, facing: 'W', bestWind: 'ENE', bestSwell: 'WSW', type: 'point break', waveRange: '1.0-2.5m+', level: 'Intermedio-Avanzado', desc: 'Peninsula con 3 point breaks (Pipe, El Muro, Derecharcha): 2 derechas y 1 izquierda. Olas huecas y potentes sobre fondo de roca. Mejor Mar-Jun. Cuidado: erizos y rocas.', hazards: 'Erizos, rocas, secciones poco profundas' },
+      'Punta de Choros': { lat: -29.2430, lon: -71.4652, facing: 'W', bestWind: 'ESE', bestSwell: 'SW', type: 'beach break', waveRange: '1.0-2.5m', level: 'Todos', desc: 'Beach break protegido con izquierdas y derechas sobre arena y rocas. Poco crowd, vacio entre semana. Mejor en otono-invierno (mayo). 500m norte de la caleta.', hazards: 'Corrientes, rocas' },
+      'El Faro': { lat: -29.9055, lon: -71.2761, facing: 'WNW', bestWind: 'ESE', bestSwell: 'SW', type: 'beach break', waveRange: '0.3-1.5m', level: 'Principiante-Intermedio', desc: 'Beach break junto al Faro Monumental en Av. del Mar. Picos A-frame pero frecuentes cierres. El mas consistente de las 12 playas de La Serena. Ideal para aprender.', hazards: 'Cierres frecuentes, corrientes' },
+      'Tongoy': { lat: -30.2611, lon: -71.4939, facing: 'N', bestWind: 'S', bestSwell: 'NW', type: 'beach break', waveRange: '0.3-1.0m', level: 'Principiante', desc: 'Bahia protegida por Punta Lengua de Vaca. Playa Grande (26km) con olas chicas y suaves. Ideal para SUP, bodyboard y principiantes absolutos. Pueblo pesquero turistico.', hazards: 'Minimos - playa segura' },
     };
 
     let currentSpot = 'Totoralillo';
@@ -1057,26 +1055,138 @@
       return 'badge-poor';
     }
 
-    // Board recommendation based on wave height and period
-    function getBoardRec(waveHeight, wavePeriod) {
-      if (waveHeight < 0.3) return { board: 'SUP / Bodyboard', emoji: '🏄‍♀️', detail: 'Olas muy chicas, ideal para SUP o bodyboard', size: '9-11 ft' };
+    // Board recommendation based on wave height, period, spot type and wind
+    function getBoardRec(waveHeight, wavePeriod, windSpeed, spotType) {
+      const spot = SPOTS[currentSpot];
+      const isPointBreak = (spotType || spot?.type || '').includes('point');
+      const isClean = (windSpeed || 0) < 10;
+      const isPowerful = wavePeriod > 10;
+
+      if (waveHeight < 0.3) return {
+        board: 'SUP / Bodyboard',
+        emoji: '🏄‍♀️',
+        detail: 'Olas muy chicas para surfear. SUP para remar y disfrutar, bodyboard para divertirse en la orilla.',
+        size: '9-11 ft (SUP) / 42" (BB)',
+        quillas: 'Single fin (SUP)',
+        nivel: 'Todos los niveles',
+        tip: 'Aprovecha para practicar remada y equilibrio'
+      };
+
+      if (waveHeight < 0.6) return {
+        board: 'Longboard',
+        emoji: '🏄',
+        detail: 'Olas muy suaves. Longboard con mucho volumen para atrapar todo. Ideal para practicar pop-up y giros basicos.',
+        size: '9\'0"-10\'0"',
+        quillas: 'Single fin o 2+1',
+        nivel: 'Principiante a intermedio',
+        tip: 'Rema con fuerza y ponete de pie rapido'
+      };
+
       if (waveHeight < 1.0) {
-        if (wavePeriod < 8) return { board: 'Longboard', emoji: '🏄', detail: 'Olas chicas y suaves, longboard para maxima remada y deslizamiento', size: '8-10 ft' };
-        return { board: 'Longboard / Funboard', emoji: '🏄', detail: 'Olas chicas con algo de fuerza, long o funboard', size: '7-9 ft' };
+        if (wavePeriod < 8) return {
+          board: 'Longboard / Funboard',
+          emoji: '🏄',
+          detail: 'Olas chicas de viento corto. Necesitas volumen para generar velocidad. Funboard si ya tienes nivel.',
+          size: '7\'6"-9\'6"',
+          quillas: '2+1 o thruster',
+          nivel: 'Principiante a intermedio',
+          tip: 'Busca las series mas grandes y posicionate bien'
+        };
+        return {
+          board: 'Funboard / Mini-mal',
+          emoji: '🏄',
+          detail: 'Olas chicas pero con empuje de groundswell. Funboard para equilibrio entre remada y maniobrabilidad.',
+          size: '7\'0"-8\'6"',
+          quillas: 'Thruster o 2+1',
+          nivel: 'Todos los niveles',
+          tip: isPowerful ? 'Groundswell = mas fuerza de la que parece' : 'Posicionate en el pico para atrapar mas olas'
+        };
       }
-      if (waveHeight < 1.8) {
-        if (wavePeriod < 8) return { board: 'Funboard / Fish', emoji: '🐟', detail: 'Olas medianas blandas, fish o funboard para mas velocidad', size: '6\'2"-7\'6"' };
-        if (wavePeriod < 12) return { board: 'Fish / Hybrid', emoji: '🐟', detail: 'Olas medianas con power, fish o hibrida para maniobras', size: '5\'8"-6\'6"' };
-        return { board: 'Shortboard / Fish', emoji: '🏄‍♂️', detail: 'Buen groundswell mediano, short o fish segun nivel', size: '5\'6"-6\'4"' };
+
+      if (waveHeight < 1.5) {
+        if (isPointBreak && isClean) return {
+          board: 'Fish / Retro Fish',
+          emoji: '🐟',
+          detail: `Olas medianas en ${isPointBreak ? 'point break' : 'beach break'} con poco viento. Fish para velocidad y flow en paredes.`,
+          size: '5\'6"-6\'4"',
+          quillas: 'Twin fin o quad',
+          nivel: 'Intermedio a avanzado',
+          tip: 'Usa el twin/quad para proyectarte en secciones rapidas'
+        };
+        if (wavePeriod < 8) return {
+          board: 'Funboard / Fish',
+          emoji: '🐟',
+          detail: 'Olas medianas de periodo corto. Fish o funboard para compensar la falta de empuje con volumen extra.',
+          size: '6\'0"-7\'6"',
+          quillas: 'Thruster o quad',
+          nivel: 'Intermedio',
+          tip: 'Rema fuerte, estas olas no empujan mucho'
+        };
+        return {
+          board: 'Fish / Hybrid',
+          emoji: '🐟',
+          detail: 'Olas medianas con buen periodo. Fish para velocidad o hibrida para mas versatilidad y maniobras.',
+          size: '5\'8"-6\'6"',
+          quillas: 'Quad o thruster',
+          nivel: 'Intermedio',
+          tip: 'Buenas condiciones para practicar bottom turns'
+        };
       }
+
+      if (waveHeight < 2.0) {
+        if (isPointBreak) return {
+          board: 'Shortboard',
+          emoji: '🏄‍♂️',
+          detail: `Point break con olas de ${waveHeight.toFixed(1)}m. Shortboard de performance para maniobras en la pared y tubos.`,
+          size: '5\'8"-6\'2"',
+          quillas: 'Thruster',
+          nivel: 'Intermedio-Avanzado',
+          tip: 'Busca las secciones huecas para tubos'
+        };
+        return {
+          board: 'Shortboard / Fish',
+          emoji: '🏄‍♂️',
+          detail: 'Buen tamano para performance. Shortboard si buscas maniobras verticales, fish si prefieres velocidad y flow.',
+          size: '5\'6"-6\'4"',
+          quillas: 'Thruster (short) / Quad (fish)',
+          nivel: 'Intermedio a avanzado',
+          tip: isPowerful ? 'Groundswell potente - buen dia para progresar' : 'Conecta secciones y practica aereos'
+        };
+      }
+
       if (waveHeight < 2.5) {
-        if (wavePeriod < 10) return { board: 'Shortboard', emoji: '🏄‍♂️', detail: 'Olas buenas con fuerza, shortboard para performance', size: '5\'8"-6\'2"' };
-        return { board: 'Shortboard', emoji: '🏄‍♂️', detail: 'Olas potentes de groundswell, shortboard de performance', size: '5\'6"-6\'0"' };
+        return {
+          board: 'Shortboard',
+          emoji: '🏄‍♂️',
+          detail: `Olas potentes de ${waveHeight.toFixed(1)}m${isPowerful ? ' con groundswell largo' : ''}. Shortboard de performance con algo de rocker para drops verticales.`,
+          size: '5\'10"-6\'2"',
+          quillas: 'Thruster',
+          nivel: 'Avanzado',
+          tip: 'Cuidado con las series grandes, posicionate bien en el lineup'
+        };
       }
+
       if (waveHeight < 3.5) {
-        return { board: 'Step-up / Gun corta', emoji: '⚡', detail: 'Olas grandes, necesitas tabla con mas largo para entrar', size: '6\'2"-7\'0"' };
+        return {
+          board: 'Step-up',
+          emoji: '⚡',
+          detail: `Olas grandes de ${waveHeight.toFixed(1)}m. Necesitas mas tabla para entrar y velocidad en paredes grandes. No para principiantes.`,
+          size: '6\'2"-7\'0"',
+          quillas: 'Thruster con quillas grandes',
+          nivel: 'Avanzado',
+          tip: 'Tabla con mas largo y rocker para late drops. Usa leash largo.'
+        };
       }
-      return { board: 'Gun', emoji: '🔱', detail: 'Olas muy grandes, gun para velocidad y control en paredes grandes', size: '7\'0"-9\'0"' };
+
+      return {
+        board: 'Gun',
+        emoji: '🔱',
+        detail: `Olas muy grandes (${waveHeight.toFixed(1)}m+). Gun para maxima velocidad y control. Solo surfistas MUY experimentados.`,
+        size: '7\'0"-9\'0"',
+        quillas: 'Thruster con quillas stiff',
+        nivel: 'Experto',
+        tip: 'Condiciones peligrosas. Nunca surfees solo. Lleva chaleco de impacto.'
+      };
     }
 
     function getWeatherIcon(code) {
@@ -1415,7 +1525,7 @@
           score = getSurfScoreForSpot(name, whVal, wpVal, wsVal, wdVal);
           wh = whVal.toFixed(1);
           detail = `${wh}m @ ${wpVal.toFixed(0)}s | ${wsVal.toFixed(0)}km/h`;
-          const rec = getBoardRec(whVal, wpVal);
+          const rec = getBoardRec(whVal, wpVal, wsVal, SPOTS[name].type);
           boardTip = `${rec.emoji} ${rec.board}`;
         }
 
@@ -1425,7 +1535,8 @@
             <div class="compare-score" style="color:${typeof score === 'number' ? getScoreColorHex(score) : '#555'}">${score}</div>
             <div class="badge ${typeof score === 'number' ? getScoreBadgeClass(score) : ''}" style="margin:4px 0">${typeof score === 'number' ? getScoreLabel(score) : '...'}</div>
             <div class="compare-detail">${detail}</div>
-            <div class="compare-detail" style="margin-top:2px">${spotCfg.type}</div>
+            <div class="compare-detail" style="margin-top:2px;text-transform:capitalize">${spotCfg.type} · ${spotCfg.waveRange}</div>
+            <div class="compare-detail" style="margin-top:2px;color:var(--surf-teal)">${spotCfg.level}</div>
             ${boardTip ? `<div class="compare-detail" style="margin-top:4px;color:var(--surf-cyan)">${boardTip}</div>` : ''}
           </div>`;
       }
@@ -1550,14 +1661,18 @@
                 <div class="card-icon" style="background:rgba(0,180,216,0.15)">🏄</div>
                 <div class="card-title">Tabla Recomendada</div>
               </div>
+              ${(() => { const br = getBoardRec(waveHeight, wavePeriod, windSpeed, spot.type); return `
               <div class="board-rec">
-                <div class="board-emoji">${getBoardRec(waveHeight, wavePeriod).emoji}</div>
+                <div class="board-emoji">${br.emoji}</div>
                 <div class="board-info">
-                  <div class="board-name">${getBoardRec(waveHeight, wavePeriod).board}</div>
-                  <div class="board-size">Talla: ${getBoardRec(waveHeight, wavePeriod).size}</div>
-                  <div class="board-detail">${getBoardRec(waveHeight, wavePeriod).detail}</div>
+                  <div class="board-name">${br.board}</div>
+                  <div class="board-size">Talla: ${br.size}</div>
+                  <div class="board-detail">${br.detail}</div>
+                  <div class="board-detail" style="margin-top:6px;color:var(--surf-yellow)">Quillas: ${br.quillas}</div>
+                  <div class="board-detail" style="color:var(--surf-teal)">Nivel: ${br.nivel}</div>
+                  <div class="board-detail" style="margin-top:4px;color:var(--surf-green);font-style:italic">💡 ${br.tip}</div>
                 </div>
-              </div>
+              </div>`; })()}
               <div class="indicator-grid" style="margin-top:14px">
                 <div class="indicator">
                   <div class="indicator-emoji">🌅</div>
@@ -1586,8 +1701,18 @@
                 </div>
                 <div class="indicator">
                   <div class="indicator-emoji">📍</div>
-                  <div class="indicator-label">Tipo</div>
-                  <div class="indicator-value" style="font-size:0.75rem;text-transform:capitalize">${spot.type}</div>
+                  <div class="indicator-label">${spot.type}</div>
+                  <div class="indicator-value" style="font-size:0.75rem">${spot.waveRange}</div>
+                </div>
+                <div class="indicator">
+                  <div class="indicator-emoji">🎯</div>
+                  <div class="indicator-label">Nivel</div>
+                  <div class="indicator-value" style="font-size:0.7rem">${spot.level}</div>
+                </div>
+                <div class="indicator">
+                  <div class="indicator-emoji">⚠️</div>
+                  <div class="indicator-label">Peligros</div>
+                  <div class="indicator-value" style="font-size:0.65rem">${spot.hazards}</div>
                 </div>
               </div>
             </div>
@@ -1689,7 +1814,7 @@
     }
 
     // ========== INIT ==========
-    fetchData(-30.0736, -71.3791);
+    fetchData(-30.0718, -71.3768);
 
     // Handle window resize for tide chart
     window.addEventListener('resize', () => {
