@@ -548,8 +548,47 @@
     /* Compare spots mini */
     .compare-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 10px;
+    }
+
+    /* Board recommendation */
+    .board-rec {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      background: rgba(0,212,255,0.06);
+      border: 1px solid rgba(0,212,255,0.15);
+      border-radius: 14px;
+      margin-top: 12px;
+    }
+
+    .board-emoji {
+      font-size: 2.2rem;
+      flex-shrink: 0;
+    }
+
+    .board-info { flex: 1; }
+
+    .board-name {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--surf-cyan);
+    }
+
+    .board-size {
+      font-size: 0.85rem;
+      color: var(--surf-yellow);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .board-detail {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.5);
+      margin-top: 4px;
+      line-height: 1.3;
     }
 
     .compare-spot {
@@ -627,7 +666,7 @@
       .app { padding: 12px; }
       .card { padding: 18px; }
       .indicator-grid { grid-template-columns: 1fr 1fr; }
-      .compare-grid { grid-template-columns: 1fr; }
+      .compare-grid { grid-template-columns: 1fr 1fr; }
     }
 
     /* Refresh button */
@@ -731,8 +770,8 @@
       <p class="subtitle">Olas, clima e indicadores de surf en tiempo real</p>
       <div class="location">
         <span>📍</span>
-        <span id="spot-name">Coquimbo, Chile</span>
-        <span>• -29.95° S, -71.34° W</span>
+        <span id="spot-name">Totoralillo, Coquimbo</span>
+        <span>• Region de Coquimbo, Chile</span>
       </div>
     </header>
 
@@ -743,9 +782,11 @@
     <div class="alert-banner" id="alert-banner"></div>
 
     <div class="spot-selector" id="spot-selector">
-      <button class="spot-btn active" data-lat="-29.97" data-lon="-71.35" data-name="Playa Peñuelas">Peñuelas</button>
-      <button class="spot-btn" data-lat="-29.91" data-lon="-71.30" data-name="Playa El Faro">El Faro</button>
-      <button class="spot-btn" data-lat="-29.25" data-lon="-71.50" data-name="Punta de Choros">Punta de Choros</button>
+      <button class="spot-btn active" data-lat="-30.0736" data-lon="-71.3791" data-name="Totoralillo">Totoralillo</button>
+      <button class="spot-btn" data-lat="-29.2430" data-lon="-71.4641" data-name="Punta de Choros">Punta de Choros</button>
+      <button class="spot-btn" data-lat="-29.9067" data-lon="-71.2747" data-name="Playa El Faro">El Faro</button>
+      <button class="spot-btn" data-lat="-30.2575" data-lon="-71.4925" data-name="Tongoy">Tongoy</button>
+      <button class="spot-btn" data-lat="-29.9593" data-lon="-71.2902" data-name="Playa Peñuelas">Peñuelas</button>
     </div>
 
     <div class="tab-bar">
@@ -769,12 +810,14 @@
   <script>
     // ========== CONFIG ==========
     const SPOTS = {
-      'Peñuelas': { lat: -29.97, lon: -71.35, facing: 'NW', bestWind: 'SE', type: 'beach break', desc: 'Ola de arena, ideal para aprender y mejorar' },
-      'El Faro': { lat: -29.91, lon: -71.30, facing: 'W', bestWind: 'E', type: 'reef break', desc: 'Ola de roca, mas potente y hueca' },
-      'Punta de Choros': { lat: -29.25, lon: -71.50, facing: 'NW', bestWind: 'SE', type: 'point break', desc: 'Ola larga de punta, consistente con swell grande' },
+      'Totoralillo': { lat: -30.0736, lon: -71.3791, facing: 'W-SW', bestWind: 'ENE', bestSwell: 'WSW', type: 'point break', desc: 'Peninsula con 3 point breaks de roca: 2 derechas y 1 izquierda. Olas de calidad, rapidas y huecas. Mejor Mar-Jun.' },
+      'Punta de Choros': { lat: -29.2430, lon: -71.4641, facing: 'SW', bestWind: 'ESE', bestSwell: 'SW', type: 'beach break', desc: 'Beach break protegido con izquierdas y derechas. Consistente, poco crowd. Cuidado con corrientes y rocas.' },
+      'El Faro': { lat: -29.9067, lon: -71.2747, facing: 'NW-W', bestWind: 'ESE', bestSwell: 'NW', type: 'beach break', desc: 'Beach break junto al Faro Monumental. Necesita swell grande (6ft+). Bueno para aprender en dias chicos.' },
+      'Tongoy': { lat: -30.2575, lon: -71.4925, facing: 'W-NW', bestWind: 'ESE', bestSwell: 'WSW', type: 'beach break', desc: 'Playa Grande (26km) expuesta al oceano. Beach break con swell del W-SW. Spot secundario pero funcional.' },
+      'Peñuelas': { lat: -29.9593, lon: -71.2902, facing: 'NW-N', bestWind: 'SSE', bestSwell: 'NW', type: 'beach break', desc: 'Bahia protegida, olas chicas. Ideal para bodyboard, SUP y principiantes. Funciona con swell NW grande.' },
     };
 
-    let currentSpot = 'Peñuelas';
+    let currentSpot = 'Totoralillo';
     let currentData = null;
     let allSpotsData = {};
     let autoRefreshTimer = null;
@@ -1000,6 +1043,28 @@
       if (score >= 50) return 'badge-good';
       if (score >= 30) return 'badge-fair';
       return 'badge-poor';
+    }
+
+    // Board recommendation based on wave height and period
+    function getBoardRec(waveHeight, wavePeriod) {
+      if (waveHeight < 0.3) return { board: 'SUP / Bodyboard', emoji: '🏄‍♀️', detail: 'Olas muy chicas, ideal para SUP o bodyboard', size: '9-11 ft' };
+      if (waveHeight < 1.0) {
+        if (wavePeriod < 8) return { board: 'Longboard', emoji: '🏄', detail: 'Olas chicas y suaves, longboard para maxima remada y deslizamiento', size: '8-10 ft' };
+        return { board: 'Longboard / Funboard', emoji: '🏄', detail: 'Olas chicas con algo de fuerza, long o funboard', size: '7-9 ft' };
+      }
+      if (waveHeight < 1.8) {
+        if (wavePeriod < 8) return { board: 'Funboard / Fish', emoji: '🐟', detail: 'Olas medianas blandas, fish o funboard para mas velocidad', size: '6\'2"-7\'6"' };
+        if (wavePeriod < 12) return { board: 'Fish / Hybrid', emoji: '🐟', detail: 'Olas medianas con power, fish o hibrida para maniobras', size: '5\'8"-6\'6"' };
+        return { board: 'Shortboard / Fish', emoji: '🏄‍♂️', detail: 'Buen groundswell mediano, short o fish segun nivel', size: '5\'6"-6\'4"' };
+      }
+      if (waveHeight < 2.5) {
+        if (wavePeriod < 10) return { board: 'Shortboard', emoji: '🏄‍♂️', detail: 'Olas buenas con fuerza, shortboard para performance', size: '5\'8"-6\'2"' };
+        return { board: 'Shortboard', emoji: '🏄‍♂️', detail: 'Olas potentes de groundswell, shortboard de performance', size: '5\'6"-6\'0"' };
+      }
+      if (waveHeight < 3.5) {
+        return { board: 'Step-up / Gun corta', emoji: '⚡', detail: 'Olas grandes, necesitas tabla con mas largo para entrar', size: '6\'2"-7\'0"' };
+      }
+      return { board: 'Gun', emoji: '🔱', detail: 'Olas muy grandes, gun para velocidad y control en paredes grandes', size: '7\'0"-9\'0"' };
     }
 
     function getWeatherIcon(code) {
@@ -1316,6 +1381,7 @@
         let score = '--';
         let wh = '--';
         let detail = 'Cargando...';
+        let boardTip = '';
         const isSelected = name === currentSpot;
 
         if (data) {
@@ -1327,6 +1393,8 @@
           score = getSurfScoreForSpot(name, whVal, wpVal, wsVal, wdVal);
           wh = whVal.toFixed(1);
           detail = `${wh}m @ ${wpVal.toFixed(0)}s | ${wsVal.toFixed(0)}km/h`;
+          const rec = getBoardRec(whVal, wpVal);
+          boardTip = `${rec.emoji} ${rec.board}`;
         }
 
         compareHtml += `
@@ -1336,6 +1404,7 @@
             <div class="badge ${typeof score === 'number' ? getScoreBadgeClass(score) : ''}" style="margin:4px 0">${typeof score === 'number' ? getScoreLabel(score) : '...'}</div>
             <div class="compare-detail">${detail}</div>
             <div class="compare-detail" style="margin-top:2px">${spotCfg.type}</div>
+            ${boardTip ? `<div class="compare-detail" style="margin-top:4px;color:var(--surf-cyan)">${boardTip}</div>` : ''}
           </div>`;
       }
 
@@ -1453,13 +1522,21 @@
               </div>
             </div>
 
-            <!-- Indicadores -->
+            <!-- Tabla Recomendada -->
             <div class="card">
               <div class="card-header">
                 <div class="card-icon" style="background:rgba(0,180,216,0.15)">🏄</div>
-                <div class="card-title">Indicadores</div>
+                <div class="card-title">Tabla Recomendada</div>
               </div>
-              <div class="indicator-grid">
+              <div class="board-rec">
+                <div class="board-emoji">${getBoardRec(waveHeight, wavePeriod).emoji}</div>
+                <div class="board-info">
+                  <div class="board-name">${getBoardRec(waveHeight, wavePeriod).board}</div>
+                  <div class="board-size">Talla: ${getBoardRec(waveHeight, wavePeriod).size}</div>
+                  <div class="board-detail">${getBoardRec(waveHeight, wavePeriod).detail}</div>
+                </div>
+              </div>
+              <div class="indicator-grid" style="margin-top:14px">
                 <div class="indicator">
                   <div class="indicator-emoji">🌅</div>
                   <div class="indicator-label">Amanecer</div>
@@ -1482,8 +1559,8 @@
                 </div>
                 <div class="indicator">
                   <div class="indicator-emoji">🧭</div>
-                  <div class="indicator-label">Orientacion</div>
-                  <div class="indicator-value">${spot.facing}</div>
+                  <div class="indicator-label">Cara: ${spot.facing}</div>
+                  <div class="indicator-value" style="font-size:0.75rem">Swell: ${spot.bestSwell}</div>
                 </div>
                 <div class="indicator">
                   <div class="indicator-emoji">📍</div>
@@ -1590,7 +1667,7 @@
     }
 
     // ========== INIT ==========
-    fetchData(-29.97, -71.35);
+    fetchData(-30.0736, -71.3791);
 
     // Handle window resize for tide chart
     window.addEventListener('resize', () => {
