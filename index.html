@@ -505,8 +505,8 @@
     /* Indicator badges */
     .indicator-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
     }
 
     .indicator {
@@ -624,6 +624,18 @@
 
     /* Full width card */
     .card-full { grid-column: 1 / -1; }
+
+    /* Board + indicators layout */
+    .board-indicators-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    @media (max-width: 768px) {
+      .board-indicators-layout { grid-template-columns: 1fr; }
+    }
 
     /* Loading */
     .loading {
@@ -1656,24 +1668,27 @@
             </div>
 
             <!-- Tabla Recomendada -->
-            <div class="card">
+            <div class="card card-full">
               <div class="card-header">
                 <div class="card-icon" style="background:rgba(0,180,216,0.15)">🏄</div>
-                <div class="card-title">Tabla Recomendada</div>
+                <div class="card-title">Tabla Recomendada & Info del Spot</div>
               </div>
+              <div class="board-indicators-layout">
               ${(() => { const br = getBoardRec(waveHeight, wavePeriod, windSpeed, spot.type); return `
-              <div class="board-rec">
-                <div class="board-emoji">${br.emoji}</div>
-                <div class="board-info">
-                  <div class="board-name">${br.board}</div>
-                  <div class="board-size">Talla: ${br.size}</div>
-                  <div class="board-detail">${br.detail}</div>
-                  <div class="board-detail" style="margin-top:6px;color:var(--surf-yellow)">Quillas: ${br.quillas}</div>
-                  <div class="board-detail" style="color:var(--surf-teal)">Nivel: ${br.nivel}</div>
-                  <div class="board-detail" style="margin-top:4px;color:var(--surf-green);font-style:italic">💡 ${br.tip}</div>
+              <div>
+                <div class="board-rec" style="margin-top:0">
+                  <div class="board-emoji">${br.emoji}</div>
+                  <div class="board-info">
+                    <div class="board-name">${br.board}</div>
+                    <div class="board-size">Talla: ${br.size}</div>
+                    <div class="board-detail">${br.detail}</div>
+                    <div class="board-detail" style="margin-top:6px;color:var(--surf-yellow)">Quillas: ${br.quillas}</div>
+                    <div class="board-detail" style="color:var(--surf-teal)">Nivel: ${br.nivel}</div>
+                    <div class="board-detail" style="margin-top:4px;color:var(--surf-green);font-style:italic">💡 ${br.tip}</div>
+                  </div>
                 </div>
               </div>`; })()}
-              <div class="indicator-grid" style="margin-top:14px">
+              <div class="indicator-grid">
                 <div class="indicator">
                   <div class="indicator-emoji">🌅</div>
                   <div class="indicator-label">Amanecer</div>
@@ -1714,6 +1729,7 @@
                   <div class="indicator-label">Peligros</div>
                   <div class="indicator-value" style="font-size:0.65rem">${spot.hazards}</div>
                 </div>
+              </div>
               </div>
             </div>
 
