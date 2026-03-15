@@ -850,6 +850,18 @@
       if (!btn) return;
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
+
+      // Re-render compare tab with latest data when switching to it
+      if (btn.dataset.tab === 'comparar' && currentData) {
+        renderDashboard(currentData.marine, currentData.weather);
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        const tab = document.getElementById('tab-comparar');
+        if (tab) tab.classList.add('active');
+        return;
+      }
+
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       const tab = document.getElementById('tab-' + btn.dataset.tab);
       if (tab) tab.classList.add('active');
@@ -918,7 +930,7 @@
 
       try {
         const [marineRes, weatherRes] = await Promise.all([
-          fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&hourly=wave_height,wave_direction,wave_period,swell_wave_height,swell_wave_direction,swell_wave_period&daily=wave_height_max,wave_direction_dominant,wave_period_max&timezone=America/Santiago&forecast_days=7`),
+          fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&hourly=wave_height,wave_direction,wave_period,swell_wave_height,swell_wave_direction,swell_wave_period,sea_surface_temperature&daily=wave_height_max,wave_direction_dominant,wave_period_max&timezone=America/Santiago&forecast_days=7`),
           fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,windspeed_10m,winddirection_10m,weathercode,uv_index&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&current=temperature_2m,windspeed_10m,winddirection_10m,weathercode,uv_index&timezone=America/Santiago&forecast_days=7`)
         ]);
 
@@ -1138,7 +1150,7 @@
       for (let i = 0; i < marine.hourly.time.length; i++) {
         if (!marine.hourly.time[i].startsWith(todayStr)) continue;
         const h = new Date(marine.hourly.time[i]).getHours();
-        if (h < 6 || h > 20) continue; // daylight hours only
+        if (h < 6 || h > 19) continue; // daylight hours only
 
         const wh = marine.hourly.wave_height?.[i] ?? 0;
         const wp = marine.hourly.wave_period?.[i] ?? 0;
@@ -1320,15 +1332,25 @@
         alertBanner.className = 'alert-banner';
       }
 
-      // Water temp
-      const month = now.getMonth();
-      const waterTemps = [18, 19, 18, 17, 16, 14, 13, 13, 13, 14, 15, 17];
-      const waterTemp = waterTemps[month];
+      // Water temp - real SST from API with Humboldt current coastal correction
+      // The API gives open-ocean SST; nearshore upwelling from Humboldt current
+      // cools water ~3°C on average in Coquimbo region
+      const HUMBOLDT_CORRECTION = -3;
+      const sstRaw = marine.hourly?.sea_surface_temperature?.[currentIdx] ?? null;
+      const waterTemp = sstRaw !== null ? Math.round(sstRaw + HUMBOLDT_CORRECTION) : (() => {
+        // Fallback: seasonal estimate for Coquimbo coast (Humboldt)
+        const month = now.getMonth();
+        return [15, 15, 14, 13, 12, 11, 10, 10, 10, 11, 12, 14][month];
+      })();
+      const waterTempDisplay = sstRaw !== null
+        ? `${waterTemp}°C`
+        : `~${waterTemp}°C`;
       let suitRec = '';
-      if (waterTemp >= 20) suitRec = 'Lycra / Spring suit';
-      else if (waterTemp >= 17) suitRec = 'Traje 3/2mm';
-      else if (waterTemp >= 14) suitRec = 'Traje 4/3mm';
-      else suitRec = 'Traje 4/3mm + botas';
+      if (waterTemp >= 18) suitRec = 'Traje 3/2mm';
+      else if (waterTemp >= 15) suitRec = 'Traje 3/2mm full';
+      else if (waterTemp >= 12) suitRec = 'Traje 4/3mm';
+      else if (waterTemp >= 10) suitRec = 'Traje 4/3mm + botas';
+      else suitRec = 'Traje 5/4mm + botas + guantes';
 
       const sunrise = weather.daily?.sunrise?.[0] ? formatTime(weather.daily.sunrise[0]) : '--';
       const sunset = weather.daily?.sunset?.[0] ? formatTime(weather.daily.sunset[0]) : '--';
@@ -1514,7 +1536,7 @@
               </div>
               <div class="metric-row">
                 <span class="metric-label">Agua</span>
-                <span class="metric-value" style="color:var(--surf-teal)">~${waterTemp}°C</span>
+                <span class="metric-value" style="color:${waterTemp <= 12 ? 'var(--surf-cyan)' : waterTemp <= 15 ? 'var(--surf-teal)' : 'var(--surf-green)'}">${waterTempDisplay} <span class="metric-unit" style="color:rgba(255,255,255,0.3)">${waterTemp <= 12 ? 'Fria' : waterTemp <= 15 ? 'Fresca' : 'Templada'}</span></span>
               </div>
               <div class="metric-row">
                 <span class="metric-label">UV</span>
