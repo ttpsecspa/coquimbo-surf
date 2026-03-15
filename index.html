@@ -4,7 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SurfCoquimbo - Olas, Clima e Indicadores de Surf</title>
+  <meta name="description" content="App de surf para Coquimbo, Chile. Olas, viento, clima, mareas e indicadores en tiempo real.">
+  <meta name="theme-color" content="#00d4ff">
+  <link rel="manifest" href="manifest.json">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏄</text></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏄</text></svg>">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
@@ -114,6 +118,25 @@
       color: var(--surf-cyan);
     }
 
+    /* Alert banner */
+    .alert-banner {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0;
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      animation: fadeIn 0.5s;
+    }
+
+    .alert-banner.show { display: flex; }
+    .alert-epic { background: rgba(6,214,160,0.15); border: 1px solid rgba(6,214,160,0.3); color: var(--surf-green); }
+    .alert-warn { background: rgba(239,71,111,0.15); border: 1px solid rgba(239,71,111,0.3); color: var(--surf-red); }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
     /* Spot selector */
     .spot-selector {
       display: flex;
@@ -143,6 +166,43 @@
       font-weight: 600;
     }
 
+    /* Tabs */
+    .tab-bar {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      margin: 15px 0;
+      background: var(--glass);
+      border-radius: 14px;
+      padding: 4px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.5);
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+
+    .tab-btn:hover { color: var(--white); }
+    .tab-btn.active {
+      background: rgba(0,212,255,0.15);
+      color: var(--surf-cyan);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.3s; }
+
     /* Surf Score */
     .surf-score-section {
       text-align: center;
@@ -156,9 +216,7 @@
       height: 180px;
     }
 
-    .surf-score-ring svg {
-      transform: rotate(-90deg);
-    }
+    .surf-score-ring svg { transform: rotate(-90deg); }
 
     .score-bg { stroke: rgba(255,255,255,0.08); }
     .score-fill {
@@ -192,6 +250,22 @@
       margin-top: 10px;
       font-size: 1.1rem;
       font-weight: 600;
+    }
+
+    /* Best time suggestion */
+    .best-time {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 12px;
+      padding: 8px 20px;
+      background: rgba(0,212,255,0.08);
+      border: 1px solid rgba(0,212,255,0.2);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      color: var(--surf-cyan);
+      display: inline-flex;
     }
 
     /* Grid */
@@ -324,20 +398,18 @@
       color: rgba(255,255,255,0.4);
     }
 
-    .compass-labels span {
-      position: absolute;
-    }
-
+    .compass-labels span { position: absolute; }
     .compass-labels .n { top: 2px; left: 50%; transform: translateX(-50%); }
     .compass-labels .s { bottom: 2px; left: 50%; transform: translateX(-50%); }
     .compass-labels .e { right: 4px; top: 50%; transform: translateY(-50%); }
     .compass-labels .w { left: 4px; top: 50%; transform: translateY(-50%); }
 
-    /* Tide chart */
-    .tide-chart {
+    /* Tide chart canvas */
+    .tide-canvas {
       width: 100%;
-      height: 120px;
+      height: 140px;
       margin-top: 10px;
+      border-radius: 8px;
     }
 
     /* Hourly forecast */
@@ -386,6 +458,12 @@
       margin-top: 4px;
     }
 
+    .hourly-period {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.3);
+      margin-top: 2px;
+    }
+
     /* 7-day forecast */
     .forecast-day {
       display: grid;
@@ -427,7 +505,7 @@
     /* Indicator badges */
     .indicator-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 10px;
     }
 
@@ -467,10 +545,46 @@
     .badge-fair { background: rgba(255, 209, 102, 0.2); color: var(--surf-yellow); }
     .badge-poor { background: rgba(239, 71, 111, 0.2); color: var(--surf-red); }
 
-    /* Full width card */
-    .card-full {
-      grid-column: 1 / -1;
+    /* Compare spots mini */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
     }
+
+    .compare-spot {
+      text-align: center;
+      padding: 16px 8px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: 1px solid transparent;
+    }
+
+    .compare-spot:hover { border-color: var(--surf-cyan); }
+    .compare-spot.selected { border-color: var(--surf-cyan); background: rgba(0,212,255,0.08); }
+
+    .compare-name {
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .compare-score {
+      font-size: 1.8rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .compare-detail {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.4);
+      margin-top: 4px;
+    }
+
+    /* Full width card */
+    .card-full { grid-column: 1 / -1; }
 
     /* Loading */
     .loading {
@@ -512,6 +626,8 @@
       .forecast-day { grid-template-columns: 60px 1fr 60px 60px; }
       .app { padding: 12px; }
       .card { padding: 18px; }
+      .indicator-grid { grid-template-columns: 1fr 1fr; }
+      .compare-grid { grid-template-columns: 1fr; }
     }
 
     /* Refresh button */
@@ -535,13 +651,72 @@
     .refresh-btn:hover { transform: scale(1.1); }
     .refresh-btn.spinning { animation: spin 0.8s linear infinite; }
 
-    /* Last updated */
+    /* Share button */
+    .share-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 84px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      color: var(--white);
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      z-index: 10;
+    }
+
+    .share-btn:hover { border-color: var(--surf-cyan); transform: scale(1.1); }
+
+    /* Auto-refresh indicator */
+    .auto-refresh {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .auto-refresh-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--surf-green);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
     .last-updated {
       text-align: center;
       color: rgba(255,255,255,0.3);
       font-size: 0.75rem;
       margin-top: 10px;
     }
+
+    /* Install prompt */
+    .install-banner {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 10px 0;
+      padding: 10px 18px;
+      background: rgba(0,212,255,0.1);
+      border: 1px solid rgba(0,212,255,0.2);
+      border-radius: 12px;
+      font-size: 0.85rem;
+      color: var(--surf-cyan);
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .install-banner:hover { background: rgba(0,212,255,0.15); }
+    .install-banner.show { display: flex; }
   </style>
 </head>
 <body>
@@ -561,10 +736,23 @@
       </div>
     </header>
 
+    <div class="install-banner" id="install-banner" onclick="installApp()">
+      📲 Instalar SurfCoquimbo en tu dispositivo
+    </div>
+
+    <div class="alert-banner" id="alert-banner"></div>
+
     <div class="spot-selector" id="spot-selector">
       <button class="spot-btn active" data-lat="-29.97" data-lon="-71.35" data-name="Playa Peñuelas">Peñuelas</button>
       <button class="spot-btn" data-lat="-29.91" data-lon="-71.30" data-name="Playa El Faro">El Faro</button>
-      <button class="spot-btn" data-lat="-30.40" data-lon="-71.70" data-name="Punta de Choros">Punta de Choros</button>
+      <button class="spot-btn" data-lat="-29.25" data-lon="-71.50" data-name="Punta de Choros">Punta de Choros</button>
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="ahora">Ahora</button>
+      <button class="tab-btn" data-tab="horario">Horario</button>
+      <button class="tab-btn" data-tab="semanal">7 Dias</button>
+      <button class="tab-btn" data-tab="comparar">Comparar</button>
     </div>
 
     <div id="content">
@@ -575,32 +763,67 @@
     </div>
   </div>
 
+  <button class="share-btn" id="share-btn" title="Compartir condiciones">📤</button>
   <button class="refresh-btn" id="refresh-btn" title="Actualizar datos">↻</button>
 
   <script>
-    // Surf spots config
+    // ========== CONFIG ==========
     const SPOTS = {
-      'Peñuelas': { lat: -29.97, lon: -71.35, facing: 'NW', bestWind: 'SE', type: 'beach break' },
-      'El Faro': { lat: -29.91, lon: -71.30, facing: 'W', bestWind: 'E', type: 'reef break' },
-      'Punta de Choros': { lat: -30.40, lon: -71.70, facing: 'NW', bestWind: 'SE', type: 'point break' },
+      'Peñuelas': { lat: -29.97, lon: -71.35, facing: 'NW', bestWind: 'SE', type: 'beach break', desc: 'Ola de arena, ideal para aprender y mejorar' },
+      'El Faro': { lat: -29.91, lon: -71.30, facing: 'W', bestWind: 'E', type: 'reef break', desc: 'Ola de roca, mas potente y hueca' },
+      'Punta de Choros': { lat: -29.25, lon: -71.50, facing: 'NW', bestWind: 'SE', type: 'point break', desc: 'Ola larga de punta, consistente con swell grande' },
     };
 
     let currentSpot = 'Peñuelas';
     let currentData = null;
+    let allSpotsData = {};
+    let autoRefreshTimer = null;
+    let deferredPrompt = null;
 
-    // Spot selector
+    // ========== PWA INSTALL ==========
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('install-banner').classList.add('show');
+    });
+
+    function installApp() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => {
+        deferredPrompt = null;
+        document.getElementById('install-banner').classList.remove('show');
+      });
+    }
+
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+
+    // ========== TAB SYSTEM ==========
+    document.querySelector('.tab-bar').addEventListener('click', (e) => {
+      const btn = e.target.closest('.tab-btn');
+      if (!btn) return;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      const tab = document.getElementById('tab-' + btn.dataset.tab);
+      if (tab) tab.classList.add('active');
+    });
+
+    // ========== SPOT SELECTOR ==========
     document.getElementById('spot-selector').addEventListener('click', (e) => {
       const btn = e.target.closest('.spot-btn');
       if (!btn) return;
       document.querySelectorAll('.spot-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      const name = btn.textContent.trim();
-      currentSpot = name;
+      currentSpot = btn.textContent.trim();
       document.getElementById('spot-name').textContent = btn.dataset.name + ', Coquimbo';
       fetchData(parseFloat(btn.dataset.lat), parseFloat(btn.dataset.lon));
     });
 
-    // Refresh
+    // ========== REFRESH ==========
     document.getElementById('refresh-btn').addEventListener('click', () => {
       const spot = SPOTS[currentSpot];
       const btn = document.getElementById('refresh-btn');
@@ -610,9 +833,45 @@
       });
     });
 
+    // Auto-refresh every 15 min
+    function startAutoRefresh() {
+      if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+      autoRefreshTimer = setInterval(() => {
+        const spot = SPOTS[currentSpot];
+        fetchData(spot.lat, spot.lon);
+      }, 15 * 60 * 1000);
+    }
+
+    // ========== SHARE ==========
+    document.getElementById('share-btn').addEventListener('click', () => {
+      if (!currentData) return;
+      const m = currentData.marine;
+      const w = currentData.weather;
+      const now = new Date();
+      let ci = findCurrentHourIdx(m);
+      const wh = m.hourly?.wave_height?.[ci] ?? 0;
+      const wp = m.hourly?.wave_period?.[ci] ?? 0;
+      const ws = w.current?.windspeed_10m ?? 0;
+
+      const text = `🏄 SurfCoquimbo - ${currentSpot}\n🌊 Olas: ${wh.toFixed(1)}m @ ${wp.toFixed(0)}s\n💨 Viento: ${ws.toFixed(0)} km/h\n🎯 Score: ${getSurfScore(wh, wp, ws, w.current?.winddirection_10m ?? 0)}/100\n📅 ${now.toLocaleDateString('es-CL')}\n\nhttps://ttpsecspa.github.io/coquimbo-surf/`;
+
+      if (navigator.share) {
+        navigator.share({ title: 'SurfCoquimbo', text }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(text).then(() => {
+          const btn = document.getElementById('share-btn');
+          btn.textContent = '✅';
+          setTimeout(() => btn.textContent = '📤', 2000);
+        });
+      }
+    });
+
+    // ========== DATA FETCH ==========
     async function fetchData(lat, lon) {
       const content = document.getElementById('content');
-      content.innerHTML = `<div class="loading"><div class="spinner"></div><p class="loading-text">Cargando datos del oceano...</p></div>`;
+      if (!currentData) {
+        content.innerHTML = `<div class="loading"><div class="spinner"></div><p class="loading-text">Cargando datos del oceano...</p></div>`;
+      }
 
       try {
         const [marineRes, weatherRes] = await Promise.all([
@@ -624,10 +883,46 @@
         const weather = await weatherRes.json();
 
         currentData = { marine, weather };
+        allSpotsData[currentSpot] = { marine, weather };
         renderDashboard(marine, weather);
+        startAutoRefresh();
+
+        // Fetch other spots in background for compare tab
+        fetchOtherSpots();
       } catch (err) {
         content.innerHTML = `<div class="loading"><p class="loading-text">Error al cargar datos. Verifica tu conexion.</p><p class="loading-text" style="margin-top:8px;font-size:0.75rem;color:rgba(255,255,255,0.2)">${err.message}</p></div>`;
       }
+    }
+
+    async function fetchOtherSpots() {
+      for (const [name, spot] of Object.entries(SPOTS)) {
+        if (name === currentSpot || allSpotsData[name]) continue;
+        try {
+          const [mRes, wRes] = await Promise.all([
+            fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${spot.lat}&longitude=${spot.lon}&hourly=wave_height,wave_direction,wave_period&daily=wave_height_max,wave_direction_dominant,wave_period_max&timezone=America/Santiago&forecast_days=7`),
+            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${spot.lat}&longitude=${spot.lon}&hourly=windspeed_10m,winddirection_10m&current=windspeed_10m,winddirection_10m&timezone=America/Santiago&forecast_days=7`)
+          ]);
+          allSpotsData[name] = { marine: await mRes.json(), weather: await wRes.json() };
+        } catch (e) {}
+      }
+    }
+
+    // ========== HELPERS ==========
+    function findCurrentHourIdx(marine) {
+      const now = new Date();
+      const currentHour = now.getHours();
+      const todayStr = now.toISOString().split('T')[0];
+      let idx = 0;
+      if (marine.hourly?.time) {
+        for (let i = 0; i < marine.hourly.time.length; i++) {
+          if (new Date(marine.hourly.time[i]).getHours() === currentHour &&
+              marine.hourly.time[i].startsWith(todayStr)) {
+            idx = i;
+            break;
+          }
+        }
+      }
+      return idx;
     }
 
     function getWindName(deg) {
@@ -639,17 +934,14 @@
       const spot = SPOTS[currentSpot];
       let score = 0;
 
-      // Wave height score (0-30)
       if (waveHeight >= 0.5 && waveHeight <= 3.0) {
         score += Math.min(30, waveHeight * 15);
       } else if (waveHeight > 3.0) {
         score += Math.max(0, 30 - (waveHeight - 3) * 10);
       }
 
-      // Wave period score (0-30)
       score += Math.min(30, wavePeriod * 2.5);
 
-      // Wind score (0-25) - offshore is best
       const windDirName = getWindName(windDir);
       const isOffshore = spot.bestWind.includes(windDirName[0]);
       if (windSpeed < 5) score += 25;
@@ -657,11 +949,28 @@
       else if (windSpeed < 15) score += 10;
       else if (windSpeed < 25) score += 5;
 
-      // Period bonus (0-15)
       if (wavePeriod > 10) score += 15;
       else if (wavePeriod > 7) score += 10;
       else if (wavePeriod > 5) score += 5;
 
+      return Math.min(100, Math.round(score));
+    }
+
+    function getSurfScoreForSpot(spotName, waveHeight, wavePeriod, windSpeed, windDir) {
+      const spot = SPOTS[spotName];
+      let score = 0;
+      if (waveHeight >= 0.5 && waveHeight <= 3.0) score += Math.min(30, waveHeight * 15);
+      else if (waveHeight > 3.0) score += Math.max(0, 30 - (waveHeight - 3) * 10);
+      score += Math.min(30, wavePeriod * 2.5);
+      const windDirName = getWindName(windDir);
+      const isOffshore = spot.bestWind.includes(windDirName[0]);
+      if (windSpeed < 5) score += 25;
+      else if (windSpeed < 15 && isOffshore) score += 20;
+      else if (windSpeed < 15) score += 10;
+      else if (windSpeed < 25) score += 5;
+      if (wavePeriod > 10) score += 15;
+      else if (wavePeriod > 7) score += 10;
+      else if (wavePeriod > 5) score += 5;
       return Math.min(100, Math.round(score));
     }
 
@@ -670,6 +979,13 @@
       if (score >= 50) return 'var(--surf-teal)';
       if (score >= 30) return 'var(--surf-yellow)';
       return 'var(--surf-red)';
+    }
+
+    function getScoreColorHex(score) {
+      if (score >= 75) return '#06d6a0';
+      if (score >= 50) return '#00b4d8';
+      if (score >= 30) return '#ffd166';
+      return '#ef476f';
     }
 
     function getScoreLabel(score) {
@@ -706,22 +1022,199 @@
       return new Date(isoStr).toLocaleDateString('es-CL', { weekday: 'short' }).replace('.', '');
     }
 
+    // Moon phase calculation
+    function getMoonPhase(date) {
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      let c = Math.floor(365.25 * (year + 4716));
+      let e = Math.floor(30.6001 * (month < 3 ? month + 13 : month + 1));
+      let jd = c + e + day - 1524.5;
+      let daysSinceNew = (jd - 2451550.1) % 29.530588853;
+      if (daysSinceNew < 0) daysSinceNew += 29.530588853;
+      const phase = daysSinceNew / 29.530588853;
+
+      if (phase < 0.0625) return { emoji: '🌑', name: 'Luna nueva', effect: 'Mareas extremas' };
+      if (phase < 0.1875) return { emoji: '🌒', name: 'Creciente', effect: 'Mareas creciendo' };
+      if (phase < 0.3125) return { emoji: '🌓', name: 'Cuarto creciente', effect: 'Mareas moderadas' };
+      if (phase < 0.4375) return { emoji: '🌔', name: 'Gibosa creciente', effect: 'Mareas aumentando' };
+      if (phase < 0.5625) return { emoji: '🌕', name: 'Luna llena', effect: 'Mareas extremas' };
+      if (phase < 0.6875) return { emoji: '🌖', name: 'Gibosa menguante', effect: 'Mareas bajando' };
+      if (phase < 0.8125) return { emoji: '🌗', name: 'Cuarto menguante', effect: 'Mareas moderadas' };
+      if (phase < 0.9375) return { emoji: '🌘', name: 'Menguante', effect: 'Mareas bajando' };
+      return { emoji: '🌑', name: 'Luna nueva', effect: 'Mareas extremas' };
+    }
+
+    // Simulated tide based on moon phase and time
+    function getTideData(now) {
+      const hours = [];
+      const moon = getMoonPhase(now);
+      const isExtreme = moon.name === 'Luna nueva' || moon.name === 'Luna llena';
+      const amplitude = isExtreme ? 1.8 : 1.2;
+
+      for (let h = 0; h < 24; h++) {
+        // Semi-diurnal tide: ~2 highs and 2 lows per day
+        const t = h / 24 * Math.PI * 4;
+        const tide = amplitude * Math.sin(t + now.getDate() * 0.5) * 0.5 + 0.8;
+        hours.push({ hour: h, level: Math.max(0, tide) });
+      }
+      return hours;
+    }
+
+    // Find best surf time today
+    function findBestTime(marine, weather) {
+      const now = new Date();
+      const todayStr = now.toISOString().split('T')[0];
+      let bestScore = 0;
+      let bestHour = null;
+
+      if (!marine.hourly?.time) return null;
+
+      for (let i = 0; i < marine.hourly.time.length; i++) {
+        if (!marine.hourly.time[i].startsWith(todayStr)) continue;
+        const h = new Date(marine.hourly.time[i]).getHours();
+        if (h < 6 || h > 20) continue; // daylight hours only
+
+        const wh = marine.hourly.wave_height?.[i] ?? 0;
+        const wp = marine.hourly.wave_period?.[i] ?? 0;
+        const ws = weather.hourly?.windspeed_10m?.[i] ?? 0;
+        const wd = weather.hourly?.winddirection_10m?.[i] ?? 0;
+        const score = getSurfScore(wh, wp, ws, wd);
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestHour = h;
+        }
+      }
+
+      return bestHour !== null ? { hour: bestHour, score: bestScore } : null;
+    }
+
+    // ========== TIDE CHART DRAWING ==========
+    function drawTideChart(canvasId, tideData, currentHour) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+
+      canvas.width = canvas.offsetWidth * dpr;
+      canvas.height = canvas.offsetHeight * dpr;
+      ctx.scale(dpr, dpr);
+
+      const w = canvas.offsetWidth;
+      const h = canvas.offsetHeight;
+      const padding = { top: 20, bottom: 25, left: 10, right: 10 };
+      const chartW = w - padding.left - padding.right;
+      const chartH = h - padding.top - padding.bottom;
+
+      // Background
+      ctx.clearRect(0, 0, w, h);
+
+      // Find max
+      const maxLevel = Math.max(...tideData.map(d => d.level));
+
+      // Draw curve
+      ctx.beginPath();
+      ctx.moveTo(padding.left, padding.top + chartH);
+
+      tideData.forEach((d, i) => {
+        const x = padding.left + (i / 23) * chartW;
+        const y = padding.top + chartH - (d.level / maxLevel) * chartH;
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          const prev = tideData[i - 1];
+          const prevX = padding.left + ((i - 1) / 23) * chartW;
+          const prevY = padding.top + chartH - (prev.level / maxLevel) * chartH;
+          const cpx = (prevX + x) / 2;
+          ctx.bezierCurveTo(cpx, prevY, cpx, y, x, y);
+        }
+      });
+
+      // Fill under curve
+      const lastX = padding.left + chartW;
+      const lastY = padding.top + chartH - (tideData[23].level / maxLevel) * chartH;
+      ctx.lineTo(lastX, padding.top + chartH);
+      ctx.lineTo(padding.left, padding.top + chartH);
+      ctx.closePath();
+
+      const gradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartH);
+      gradient.addColorStop(0, 'rgba(0, 180, 216, 0.3)');
+      gradient.addColorStop(1, 'rgba(0, 180, 216, 0.02)');
+      ctx.fillStyle = gradient;
+      ctx.fill();
+
+      // Stroke line
+      ctx.beginPath();
+      tideData.forEach((d, i) => {
+        const x = padding.left + (i / 23) * chartW;
+        const y = padding.top + chartH - (d.level / maxLevel) * chartH;
+        if (i === 0) ctx.moveTo(x, y);
+        else {
+          const prev = tideData[i - 1];
+          const prevX = padding.left + ((i - 1) / 23) * chartW;
+          const prevY = padding.top + chartH - (prev.level / maxLevel) * chartH;
+          const cpx = (prevX + x) / 2;
+          ctx.bezierCurveTo(cpx, prevY, cpx, y, x, y);
+        }
+      });
+      ctx.strokeStyle = '#00b4d8';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Current time marker
+      if (currentHour >= 0 && currentHour <= 23) {
+        const cx = padding.left + (currentHour / 23) * chartW;
+        const cy = padding.top + chartH - (tideData[currentHour].level / maxLevel) * chartH;
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#00d4ff';
+        ctx.fill();
+        ctx.strokeStyle = '#0a1628';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Label
+        ctx.fillStyle = '#00d4ff';
+        ctx.font = '11px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${tideData[currentHour].level.toFixed(1)}m`, cx, cy - 10);
+      }
+
+      // Hour labels
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.font = '10px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      [0, 6, 12, 18, 23].forEach(h => {
+        const x = padding.left + (h / 23) * chartW;
+        ctx.fillText(h + ':00', x, h + padding.top + chartH + 15);
+      });
+
+      // High/Low labels
+      let maxIdx = 0, minIdx = 0;
+      tideData.forEach((d, i) => {
+        if (d.level > tideData[maxIdx].level) maxIdx = i;
+        if (d.level < tideData[minIdx].level) minIdx = i;
+      });
+
+      ctx.font = 'bold 10px Inter, sans-serif';
+      const highX = padding.left + (maxIdx / 23) * chartW;
+      const highY = padding.top + chartH - (tideData[maxIdx].level / maxLevel) * chartH;
+      ctx.fillStyle = 'rgba(0,212,255,0.6)';
+      ctx.fillText('ALTA', highX, highY - 8);
+
+      const lowX = padding.left + (minIdx / 23) * chartW;
+      const lowY = padding.top + chartH - (tideData[minIdx].level / maxLevel) * chartH;
+      ctx.fillStyle = 'rgba(255,209,102,0.6)';
+      ctx.fillText('BAJA', lowX, lowY + 18);
+    }
+
+    // ========== RENDER ==========
     function renderDashboard(marine, weather) {
       const now = new Date();
       const currentHour = now.getHours();
-      const todayStr = now.toISOString().split('T')[0];
-
-      // Find current hour index
-      let currentIdx = 0;
-      if (marine.hourly && marine.hourly.time) {
-        for (let i = 0; i < marine.hourly.time.length; i++) {
-          if (new Date(marine.hourly.time[i]).getHours() === currentHour &&
-              marine.hourly.time[i].startsWith(todayStr)) {
-            currentIdx = i;
-            break;
-          }
-        }
-      }
+      const currentIdx = findCurrentHourIdx(marine);
 
       const waveHeight = marine.hourly?.wave_height?.[currentIdx] ?? 0;
       const waveDir = marine.hourly?.wave_direction?.[currentIdx] ?? 0;
@@ -746,47 +1239,26 @@
       const waveDirName = getWindName(waveDir);
       const isOffshore = spot.bestWind.includes(windDirName[0]);
 
-      // Build hourly forecast (next 24h)
-      let hourlyHtml = '';
-      for (let i = currentIdx; i < Math.min(currentIdx + 24, (marine.hourly?.time?.length || 0)); i++) {
-        const h = new Date(marine.hourly.time[i]).getHours();
-        const wh = marine.hourly.wave_height?.[i] ?? 0;
-        const ws = weather.hourly?.windspeed_10m?.[i] ?? 0;
-        const isNow = i === currentIdx;
-        hourlyHtml += `
-          <div class="hourly-item ${isNow ? 'now' : ''}">
-            <div class="hourly-time">${isNow ? 'Ahora' : h + ':00'}</div>
-            <div class="hourly-wave" style="color:${getScoreColor(getSurfScore(wh, marine.hourly.wave_period?.[i] ?? 0, ws, weather.hourly?.winddirection_10m?.[i] ?? 0))}">${wh.toFixed(1)}m</div>
-            <div class="hourly-wind">${ws.toFixed(0)} km/h</div>
-          </div>`;
+      const moon = getMoonPhase(now);
+      const tideData = getTideData(now);
+      const bestTime = findBestTime(marine, weather);
+
+      // Alert banner
+      const alertBanner = document.getElementById('alert-banner');
+      if (surfScore >= 75) {
+        alertBanner.className = 'alert-banner show alert-epic';
+        alertBanner.innerHTML = '🔥 Condiciones EPICAS ahora en ' + currentSpot + ' - A surfear!';
+      } else if (waveHeight > 4) {
+        alertBanner.className = 'alert-banner show alert-warn';
+        alertBanner.innerHTML = '⚠️ Oleaje grande (' + waveHeight.toFixed(1) + 'm) - Cuidado, solo surfistas experimentados';
+      } else {
+        alertBanner.className = 'alert-banner';
       }
 
-      // 7-day forecast
-      let forecastHtml = '';
-      const maxWaveDaily = Math.max(...(marine.daily?.wave_height_max || [1]));
-      for (let i = 0; i < (marine.daily?.time?.length || 0); i++) {
-        const dayWave = marine.daily.wave_height_max?.[i] ?? 0;
-        const dayWaveDir = marine.daily.wave_direction_dominant?.[i] ?? 0;
-        const barWidth = (dayWave / maxWaveDaily) * 100;
-        const dayWindMax = Math.max(...(weather.hourly?.windspeed_10m?.slice(i * 24, (i + 1) * 24) || [0]));
-
-        forecastHtml += `
-          <div class="forecast-day">
-            <div class="forecast-day-name">${getDayName(marine.daily.time[i], i)}</div>
-            <div class="forecast-bar-container">
-              <div class="forecast-bar" style="width:${barWidth}%;background:${getScoreColor(getSurfScore(dayWave, marine.daily.wave_period_max?.[i] ?? 0, dayWindMax, dayWaveDir))}"></div>
-            </div>
-            <div class="forecast-wave">${dayWave.toFixed(1)} m</div>
-            <div class="forecast-wind">${getWindName(dayWaveDir)}</div>
-          </div>`;
-      }
-
-      // Water temp estimate for Coquimbo (seasonal approx)
+      // Water temp
       const month = now.getMonth();
       const waterTemps = [18, 19, 18, 17, 16, 14, 13, 13, 13, 14, 15, 17];
       const waterTemp = waterTemps[month];
-
-      // Suit recommendation
       let suitRec = '';
       if (waterTemp >= 20) suitRec = 'Lycra / Spring suit';
       else if (waterTemp >= 17) suitRec = 'Traje 3/2mm';
@@ -795,6 +1267,88 @@
 
       const sunrise = weather.daily?.sunrise?.[0] ? formatTime(weather.daily.sunrise[0]) : '--';
       const sunset = weather.daily?.sunset?.[0] ? formatTime(weather.daily.sunset[0]) : '--';
+
+      // Build hourly HTML
+      let hourlyHtml = '';
+      for (let i = currentIdx; i < Math.min(currentIdx + 24, (marine.hourly?.time?.length || 0)); i++) {
+        const h = new Date(marine.hourly.time[i]).getHours();
+        const wh = marine.hourly.wave_height?.[i] ?? 0;
+        const wp = marine.hourly.wave_period?.[i] ?? 0;
+        const ws = weather.hourly?.windspeed_10m?.[i] ?? 0;
+        const wd = weather.hourly?.winddirection_10m?.[i] ?? 0;
+        const isNow = i === currentIdx;
+        const hScore = getSurfScore(wh, wp, ws, wd);
+        hourlyHtml += `
+          <div class="hourly-item ${isNow ? 'now' : ''}">
+            <div class="hourly-time">${isNow ? 'Ahora' : h + ':00'}</div>
+            <div class="hourly-wave" style="color:${getScoreColor(hScore)}">${wh.toFixed(1)}m</div>
+            <div class="hourly-period">${wp.toFixed(0)}s</div>
+            <div class="hourly-wind">${ws.toFixed(0)} km/h ${getWindName(wd)}</div>
+            <div><span class="badge ${getScoreBadgeClass(hScore)}" style="font-size:0.6rem;padding:2px 6px">${hScore}</span></div>
+          </div>`;
+      }
+
+      // Build 7-day forecast
+      let forecastHtml = '';
+      const maxWaveDaily = Math.max(...(marine.daily?.wave_height_max || [1]));
+      for (let i = 0; i < (marine.daily?.time?.length || 0); i++) {
+        const dayWave = marine.daily.wave_height_max?.[i] ?? 0;
+        const dayWaveDir = marine.daily.wave_direction_dominant?.[i] ?? 0;
+        const barWidth = (dayWave / maxWaveDaily) * 100;
+        const dayWindMax = Math.max(...(weather.hourly?.windspeed_10m?.slice(i * 24, (i + 1) * 24) || [0]));
+        const dayScore = getSurfScore(dayWave, marine.daily.wave_period_max?.[i] ?? 0, dayWindMax, dayWaveDir);
+
+        forecastHtml += `
+          <div class="forecast-day">
+            <div class="forecast-day-name">${getDayName(marine.daily.time[i], i)} <span class="badge ${getScoreBadgeClass(dayScore)}" style="font-size:0.6rem;padding:1px 5px;margin-left:4px">${dayScore}</span></div>
+            <div class="forecast-bar-container">
+              <div class="forecast-bar" style="width:${barWidth}%;background:${getScoreColor(dayScore)}"></div>
+            </div>
+            <div class="forecast-wave">${dayWave.toFixed(1)} m</div>
+            <div class="forecast-wind">${getWindName(dayWaveDir)} ${dayWindMax.toFixed(0)}km/h</div>
+          </div>`;
+      }
+
+      // Compare spots
+      let compareHtml = '';
+      for (const [name, spotCfg] of Object.entries(SPOTS)) {
+        const data = allSpotsData[name];
+        let score = '--';
+        let wh = '--';
+        let detail = 'Cargando...';
+        const isSelected = name === currentSpot;
+
+        if (data) {
+          const ci = findCurrentHourIdx(data.marine);
+          const whVal = data.marine.hourly?.wave_height?.[ci] ?? 0;
+          const wpVal = data.marine.hourly?.wave_period?.[ci] ?? 0;
+          const wsVal = data.weather.current?.windspeed_10m ?? 0;
+          const wdVal = data.weather.current?.winddirection_10m ?? 0;
+          score = getSurfScoreForSpot(name, whVal, wpVal, wsVal, wdVal);
+          wh = whVal.toFixed(1);
+          detail = `${wh}m @ ${wpVal.toFixed(0)}s | ${wsVal.toFixed(0)}km/h`;
+        }
+
+        compareHtml += `
+          <div class="compare-spot ${isSelected ? 'selected' : ''}" onclick="selectSpot('${name}')">
+            <div class="compare-name">${name}</div>
+            <div class="compare-score" style="color:${typeof score === 'number' ? getScoreColorHex(score) : '#555'}">${score}</div>
+            <div class="badge ${typeof score === 'number' ? getScoreBadgeClass(score) : ''}" style="margin:4px 0">${typeof score === 'number' ? getScoreLabel(score) : '...'}</div>
+            <div class="compare-detail">${detail}</div>
+            <div class="compare-detail" style="margin-top:2px">${spotCfg.type}</div>
+          </div>`;
+      }
+
+      // Best time text
+      let bestTimeHtml = '';
+      if (bestTime) {
+        bestTimeHtml = `
+          <div style="text-align:center;margin-top:12px">
+            <div class="best-time">
+              ⏰ Mejor hora hoy: <strong>${bestTime.hour}:00</strong> (score ${bestTime.score})
+            </div>
+          </div>`;
+      }
 
       document.getElementById('content').innerHTML = `
         <!-- Surf Score -->
@@ -816,156 +1370,236 @@
             <span class="badge ${getScoreBadgeClass(surfScore)}">${getScoreLabel(surfScore)}</span>
             para surfear en ${currentSpot}
           </div>
+          ${bestTimeHtml}
         </div>
 
-        <div class="grid">
-          <!-- Olas -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-icon" style="background:rgba(0,212,255,0.15)">🌊</div>
-              <div class="card-title">Oleaje Actual</div>
+        <!-- TAB: Ahora -->
+        <div class="tab-content active" id="tab-ahora">
+          <div class="grid">
+            <!-- Olas -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-icon" style="background:rgba(0,212,255,0.15)">🌊</div>
+                <div class="card-title">Oleaje Actual</div>
+              </div>
+              <div style="text-align:center;margin-bottom:14px">
+                <span class="metric-big" style="color:var(--surf-cyan)">${waveHeight.toFixed(1)}</span>
+                <span class="metric-unit">m</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Periodo</span>
+                <span class="metric-value">${wavePeriod.toFixed(0)} <span class="metric-unit">seg</span></span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Direccion</span>
+                <span class="metric-value">${waveDirName} (${waveDir}°)</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Swell</span>
+                <span class="metric-value">${swellHeight.toFixed(1)}m @ ${swellPeriod.toFixed(0)}s ${getWindName(swellDir)}</span>
+              </div>
             </div>
-            <div style="text-align:center;margin-bottom:14px">
-              <span class="metric-big" style="color:var(--surf-cyan)">${waveHeight.toFixed(1)}</span>
-              <span class="metric-unit">m</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-label">Periodo</span>
-              <span class="metric-value">${wavePeriod.toFixed(0)} <span class="metric-unit">seg</span></span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-label">Direccion</span>
-              <span class="metric-value">${waveDirName} (${waveDir}°)</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-label">Swell</span>
-              <span class="metric-value">${swellHeight.toFixed(1)}m @ ${swellPeriod.toFixed(0)}s ${getWindName(swellDir)}</span>
-            </div>
-          </div>
 
-          <!-- Viento -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-icon" style="background:rgba(255,209,102,0.15)">💨</div>
-              <div class="card-title">Viento</div>
-            </div>
-            <div style="text-align:center;margin-bottom:8px">
-              <span class="metric-big" style="color:${isOffshore ? 'var(--surf-green)' : 'var(--surf-orange)'}">${windSpeed.toFixed(0)}</span>
-              <span class="metric-unit">km/h</span>
-            </div>
-            <div style="text-align:center;margin-bottom:8px">
-              <span class="badge ${isOffshore ? 'badge-epic' : 'badge-poor'}">${isOffshore ? 'OFFSHORE' : 'ONSHORE'}</span>
-            </div>
-            <div class="compass">
-              <div class="compass-arrow" style="transform: rotate(${windDir}deg)"></div>
-              <div class="compass-labels">
-                <span class="n">N</span>
-                <span class="s">S</span>
-                <span class="e">E</span>
-                <span class="w">W</span>
+            <!-- Viento -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-icon" style="background:rgba(255,209,102,0.15)">💨</div>
+                <div class="card-title">Viento</div>
+              </div>
+              <div style="text-align:center;margin-bottom:8px">
+                <span class="metric-big" style="color:${isOffshore ? 'var(--surf-green)' : 'var(--surf-orange)'}">${windSpeed.toFixed(0)}</span>
+                <span class="metric-unit">km/h</span>
+              </div>
+              <div style="text-align:center;margin-bottom:8px">
+                <span class="badge ${isOffshore ? 'badge-epic' : 'badge-poor'}">${isOffshore ? 'OFFSHORE' : 'ONSHORE'}</span>
+              </div>
+              <div class="compass">
+                <div class="compass-arrow" style="transform: rotate(${windDir}deg)"></div>
+                <div class="compass-labels">
+                  <span class="n">N</span>
+                  <span class="s">S</span>
+                  <span class="e">E</span>
+                  <span class="w">W</span>
+                </div>
+              </div>
+              <div style="text-align:center;margin-top:8px">
+                <span class="metric-value">${windDirName}</span>
+                <span class="metric-unit">(${windDir}°)</span>
               </div>
             </div>
-            <div style="text-align:center;margin-top:8px">
-              <span class="metric-value">${windDirName}</span>
-              <span class="metric-unit">(${windDir}°)</span>
-            </div>
-          </div>
 
-          <!-- Clima -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-icon" style="background:rgba(6,214,160,0.15)">🌡️</div>
-              <div class="card-title">Clima</div>
+            <!-- Clima -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-icon" style="background:rgba(6,214,160,0.15)">🌡️</div>
+                <div class="card-title">Clima</div>
+              </div>
+              <div style="text-align:center;margin-bottom:14px">
+                <span style="font-size:2rem">${getWeatherIcon(weatherCode)}</span>
+                <span class="metric-big" style="margin-left:8px">${temp.toFixed(0)}</span>
+                <span class="metric-unit">°C</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Max / Min</span>
+                <span class="metric-value">${weather.daily?.temperature_2m_max?.[0]?.toFixed(0) ?? '--'}° / ${weather.daily?.temperature_2m_min?.[0]?.toFixed(0) ?? '--'}°</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Agua</span>
+                <span class="metric-value" style="color:var(--surf-teal)">~${waterTemp}°C</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">UV</span>
+                <span class="metric-value" style="color:${uvIndex > 8 ? 'var(--surf-red)' : uvIndex > 5 ? 'var(--surf-orange)' : 'var(--surf-green)'}">${uvIndex.toFixed(0)} <span class="metric-unit">${uvIndex > 8 ? 'Muy alto' : uvIndex > 5 ? 'Alto' : 'Moderado'}</span></span>
+              </div>
             </div>
-            <div style="text-align:center;margin-bottom:14px">
-              <span style="font-size:2rem">${getWeatherIcon(weatherCode)}</span>
-              <span class="metric-big" style="margin-left:8px">${temp.toFixed(0)}</span>
-              <span class="metric-unit">°C</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-label">Max / Min</span>
-              <span class="metric-value">${weather.daily?.temperature_2m_max?.[0]?.toFixed(0) ?? '--'}° / ${weather.daily?.temperature_2m_min?.[0]?.toFixed(0) ?? '--'}°</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-label">Agua</span>
-              <span class="metric-value" style="color:var(--surf-teal)">~${waterTemp}°C</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-label">UV</span>
-              <span class="metric-value" style="color:${uvIndex > 8 ? 'var(--surf-red)' : uvIndex > 5 ? 'var(--surf-orange)' : 'var(--surf-green)'}">${uvIndex.toFixed(0)} <span class="metric-unit">${uvIndex > 8 ? 'Muy alto' : uvIndex > 5 ? 'Alto' : 'Moderado'}</span></span>
-            </div>
-          </div>
 
-          <!-- Indicadores de Surf -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-icon" style="background:rgba(0,180,216,0.15)">🏄</div>
-              <div class="card-title">Indicadores</div>
+            <!-- Indicadores -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-icon" style="background:rgba(0,180,216,0.15)">🏄</div>
+                <div class="card-title">Indicadores</div>
+              </div>
+              <div class="indicator-grid">
+                <div class="indicator">
+                  <div class="indicator-emoji">🌅</div>
+                  <div class="indicator-label">Amanecer</div>
+                  <div class="indicator-value">${sunrise}</div>
+                </div>
+                <div class="indicator">
+                  <div class="indicator-emoji">🌇</div>
+                  <div class="indicator-label">Atardecer</div>
+                  <div class="indicator-value">${sunset}</div>
+                </div>
+                <div class="indicator">
+                  <div class="indicator-emoji">${moon.emoji}</div>
+                  <div class="indicator-label">Luna</div>
+                  <div class="indicator-value" style="font-size:0.75rem">${moon.name}</div>
+                </div>
+                <div class="indicator">
+                  <div class="indicator-emoji">🤿</div>
+                  <div class="indicator-label">Traje</div>
+                  <div class="indicator-value" style="font-size:0.75rem">${suitRec}</div>
+                </div>
+                <div class="indicator">
+                  <div class="indicator-emoji">🧭</div>
+                  <div class="indicator-label">Orientacion</div>
+                  <div class="indicator-value">${spot.facing}</div>
+                </div>
+                <div class="indicator">
+                  <div class="indicator-emoji">📍</div>
+                  <div class="indicator-label">Tipo</div>
+                  <div class="indicator-value" style="font-size:0.75rem;text-transform:capitalize">${spot.type}</div>
+                </div>
+              </div>
             </div>
-            <div class="indicator-grid">
-              <div class="indicator">
-                <div class="indicator-emoji">🌅</div>
-                <div class="indicator-label">Amanecer</div>
-                <div class="indicator-value">${sunrise}</div>
-              </div>
-              <div class="indicator">
-                <div class="indicator-emoji">🌇</div>
-                <div class="indicator-label">Atardecer</div>
-                <div class="indicator-value">${sunset}</div>
-              </div>
-              <div class="indicator">
-                <div class="indicator-emoji">🤿</div>
-                <div class="indicator-label">Traje</div>
-                <div class="indicator-value" style="font-size:0.8rem">${suitRec}</div>
-              </div>
-              <div class="indicator">
-                <div class="indicator-emoji">📍</div>
-                <div class="indicator-label">Tipo</div>
-                <div class="indicator-value" style="font-size:0.8rem;text-transform:capitalize">${spot.type}</div>
-              </div>
-              <div class="indicator">
-                <div class="indicator-emoji">🧭</div>
-                <div class="indicator-label">Orientacion</div>
-                <div class="indicator-value">${spot.facing}</div>
-              </div>
-              <div class="indicator">
-                <div class="indicator-emoji">🎯</div>
-                <div class="indicator-label">Mejor viento</div>
-                <div class="indicator-value">${spot.bestWind}</div>
-              </div>
-            </div>
-          </div>
 
-          <!-- Pronostico horario -->
-          <div class="card card-full">
-            <div class="card-header">
-              <div class="card-icon" style="background:rgba(0,212,255,0.15)">⏱️</div>
-              <div class="card-title">Pronostico Horario (Proximas 24h)</div>
+            <!-- Mareas -->
+            <div class="card card-full">
+              <div class="card-header">
+                <div class="card-icon" style="background:rgba(0,180,216,0.15)">🌊</div>
+                <div class="card-title">Mareas (estimacion) &mdash; ${moon.emoji} ${moon.effect}</div>
+              </div>
+              <canvas id="tide-chart" class="tide-canvas"></canvas>
             </div>
-            <div class="hourly-scroll">${hourlyHtml}</div>
-          </div>
-
-          <!-- 7-day forecast -->
-          <div class="card card-full">
-            <div class="card-header">
-              <div class="card-icon" style="background:rgba(6,214,160,0.15)">📅</div>
-              <div class="card-title">Pronostico 7 Dias</div>
-            </div>
-            ${forecastHtml}
           </div>
         </div>
 
-        <div class="last-updated">Actualizado: ${now.toLocaleString('es-CL')}</div>
+        <!-- TAB: Horario -->
+        <div class="tab-content" id="tab-horario">
+          <div class="grid">
+            <div class="card card-full">
+              <div class="card-header">
+                <div class="card-icon" style="background:rgba(0,212,255,0.15)">⏱️</div>
+                <div class="card-title">Pronostico Horario (Proximas 24h)</div>
+              </div>
+              <div class="hourly-scroll">${hourlyHtml}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: Semanal -->
+        <div class="tab-content" id="tab-semanal">
+          <div class="grid">
+            <div class="card card-full">
+              <div class="card-header">
+                <div class="card-icon" style="background:rgba(6,214,160,0.15)">📅</div>
+                <div class="card-title">Pronostico 7 Dias - ${currentSpot}</div>
+              </div>
+              ${forecastHtml}
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: Comparar -->
+        <div class="tab-content" id="tab-comparar">
+          <div class="grid">
+            <div class="card card-full">
+              <div class="card-header">
+                <div class="card-icon" style="background:rgba(255,140,66,0.15)">⚡</div>
+                <div class="card-title">Comparar Spots - Ahora</div>
+              </div>
+              <div class="compare-grid">${compareHtml}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="last-updated auto-refresh">
+          <span class="auto-refresh-dot"></span>
+          Actualizado: ${now.toLocaleString('es-CL')} &mdash; Auto-refresh cada 15 min
+        </div>
 
         <footer class="footer">
           <p>SurfCoquimbo &mdash; Datos de <a href="https://open-meteo.com" target="_blank">Open-Meteo</a></p>
+          <p style="margin-top:4px">${spot.desc}</p>
           <p style="margin-top:4px">Hecho con amor para la comunidad surfera de Coquimbo 🤙</p>
         </footer>
       `;
+
+      // Draw tide chart after DOM is ready
+      requestAnimationFrame(() => {
+        drawTideChart('tide-chart', tideData, currentHour);
+      });
     }
 
-    // Initial load
+    // Select spot from compare
+    function selectSpot(name) {
+      const spot = SPOTS[name];
+      if (!spot) return;
+      currentSpot = name;
+
+      // Update buttons
+      document.querySelectorAll('.spot-btn').forEach(b => {
+        if (b.textContent.trim() === name) {
+          b.classList.add('active');
+          document.getElementById('spot-name').textContent = b.dataset.name + ', Coquimbo';
+        } else {
+          b.classList.remove('active');
+        }
+      });
+
+      // Switch to "Ahora" tab
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector('.tab-btn[data-tab="ahora"]').classList.add('active');
+
+      if (allSpotsData[name]) {
+        currentData = allSpotsData[name];
+        renderDashboard(allSpotsData[name].marine, allSpotsData[name].weather);
+      } else {
+        fetchData(spot.lat, spot.lon);
+      }
+    }
+
+    // ========== INIT ==========
     fetchData(-29.97, -71.35);
+
+    // Handle window resize for tide chart
+    window.addEventListener('resize', () => {
+      if (currentData) {
+        const now = new Date();
+        const tideData = getTideData(now);
+        drawTideChart('tide-chart', tideData, now.getHours());
+      }
+    });
   </script>
 </body>
 </html>
