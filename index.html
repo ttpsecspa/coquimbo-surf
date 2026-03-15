@@ -464,7 +464,95 @@
       margin-top: 2px;
     }
 
-    /* 7-day forecast */
+    /* Swell decomposition */
+    .swell-decomp {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .swell-decomp-title {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .swell-component {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      margin-bottom: 4px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      border-left: 3px solid;
+    }
+
+    .swell-component.primary { border-left-color: var(--surf-cyan); }
+    .swell-component.secondary { border-left-color: var(--surf-teal); }
+    .swell-component.wind-swell { border-left-color: var(--surf-yellow); }
+
+    .swell-comp-label {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.5);
+      min-width: 60px;
+    }
+
+    .swell-comp-data {
+      font-size: 0.8rem;
+      font-weight: 600;
+      flex: 1;
+    }
+
+    .swell-comp-rating {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    /* Swell rating badge */
+    .swell-face {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 8px;
+      padding: 6px 12px;
+      background: rgba(0,212,255,0.08);
+      border: 1px solid rgba(0,212,255,0.15);
+      border-radius: 10px;
+      font-size: 0.85rem;
+    }
+
+    .swell-face-value {
+      font-weight: 800;
+      font-size: 1.1rem;
+    }
+
+    .swell-face-label {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.4);
+    }
+
+    /* Swell origin info */
+    .swell-origin {
+      margin-top: 8px;
+      padding: 8px 10px;
+      background: rgba(6,214,160,0.06);
+      border: 1px solid rgba(6,214,160,0.1);
+      border-radius: 8px;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .swell-origin-label {
+      color: var(--surf-green);
+      font-weight: 600;
+    }
+
+    /* 16-day forecast */
     .forecast-day {
       display: grid;
       grid-template-columns: 80px 1fr 80px 80px;
@@ -501,6 +589,16 @@
 
     .forecast-wave { font-weight: 700; }
     .forecast-wind { color: rgba(255,255,255,0.5); }
+
+    .forecast-section-label {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 12px 0 4px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      margin-top: 4px;
+    }
 
     /* Indicator badges */
     .indicator-grid {
@@ -803,7 +901,7 @@
     <div class="tab-bar">
       <button class="tab-btn active" data-tab="ahora">Ahora</button>
       <button class="tab-btn" data-tab="horario">Horario</button>
-      <button class="tab-btn" data-tab="semanal">7 Dias</button>
+      <button class="tab-btn" data-tab="semanal">16 Dias</button>
       <button class="tab-btn" data-tab="comparar">Comparar</button>
     </div>
 
@@ -940,8 +1038,8 @@
 
       try {
         const [marineRes, weatherRes] = await Promise.all([
-          fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&hourly=wave_height,wave_direction,wave_period,swell_wave_height,swell_wave_direction,swell_wave_period,sea_surface_temperature&daily=wave_height_max,wave_direction_dominant,wave_period_max&timezone=America/Santiago&forecast_days=7`),
-          fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,windspeed_10m,winddirection_10m,weathercode,uv_index&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&current=temperature_2m,windspeed_10m,winddirection_10m,weathercode,uv_index&timezone=America/Santiago&forecast_days=7`)
+          fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&hourly=wave_height,wave_direction,wave_period,swell_wave_height,swell_wave_direction,swell_wave_period,secondary_swell_wave_height,secondary_swell_wave_direction,secondary_swell_wave_period,sea_surface_temperature&daily=wave_height_max,wave_direction_dominant,wave_period_max,swell_wave_height_max,swell_wave_period_max,swell_wave_direction_dominant&timezone=America/Santiago&forecast_days=16`),
+          fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,windspeed_10m,winddirection_10m,weathercode,uv_index&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&current=temperature_2m,windspeed_10m,winddirection_10m,weathercode,uv_index&timezone=America/Santiago&forecast_days=16`)
         ]);
 
         const marine = await marineRes.json();
@@ -964,8 +1062,8 @@
         if (name === currentSpot || allSpotsData[name]) continue;
         try {
           const [mRes, wRes] = await Promise.all([
-            fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${spot.lat}&longitude=${spot.lon}&hourly=wave_height,wave_direction,wave_period&daily=wave_height_max,wave_direction_dominant,wave_period_max&timezone=America/Santiago&forecast_days=7`),
-            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${spot.lat}&longitude=${spot.lon}&hourly=windspeed_10m,winddirection_10m&current=windspeed_10m,winddirection_10m&timezone=America/Santiago&forecast_days=7`)
+            fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${spot.lat}&longitude=${spot.lon}&hourly=wave_height,wave_direction,wave_period,swell_wave_height,swell_wave_direction,swell_wave_period&daily=wave_height_max,wave_direction_dominant,wave_period_max&timezone=America/Santiago&forecast_days=16`),
+            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${spot.lat}&longitude=${spot.lon}&hourly=windspeed_10m,winddirection_10m&current=windspeed_10m,winddirection_10m&timezone=America/Santiago&forecast_days=16`)
           ]);
           allSpotsData[name] = { marine: await mRes.json(), weather: await wRes.json() };
         } catch (e) {}
@@ -1065,6 +1163,73 @@
       if (score >= 50) return 'badge-good';
       if (score >= 30) return 'badge-fair';
       return 'badge-poor';
+    }
+
+    // ========== SWELL RATING SYSTEM (Stormsurf-inspired) ==========
+    // Converts deep-water swell amplitude + period → breaking wave face height
+    // Uses empirical shoaling/refraction for Chilean coast (steep continental shelf)
+    function getSwellRating(amplitude, period) {
+      if (!amplitude || !period || amplitude < 0.1) return { face: 0, rating: 'FLAT', color: 'rgba(255,255,255,0.3)', stars: 0 };
+
+      // Empirical wave face formula: face = amplitude * shoaling_factor * period_boost
+      // Shoaling factor for steep Chilean shelf: ~1.3-1.6x depending on period
+      const shoalingFactor = 1.3 + (period / 25) * 0.3; // longer period = more shoaling
+      // Period energy boost: E ∝ period², so longer period = disproportionately bigger waves
+      const periodBoost = 1.0 + Math.max(0, (period - 8)) * 0.06;
+      const face = amplitude * shoalingFactor * periodBoost;
+
+      let rating, color, stars;
+      if (face < 0.3) { rating = 'FLAT'; color = 'rgba(255,255,255,0.3)'; stars = 0; }
+      else if (face < 0.6) { rating = 'SMALL'; color = 'var(--surf-yellow)'; stars = 1; }
+      else if (face < 1.2) { rating = 'FAIR'; color = 'var(--surf-teal)'; stars = 2; }
+      else if (face < 2.0) { rating = 'GOOD'; color = 'var(--surf-cyan)'; stars = 3; }
+      else if (face < 3.0) { rating = 'EPIC'; color = 'var(--surf-green)'; stars = 4; }
+      else { rating = 'XXL'; color = 'var(--surf-red)'; stars = 5; }
+
+      return { face: Math.round(face * 10) / 10, rating, color, stars };
+    }
+
+    // Swell origin estimation based on direction and period
+    // Longer period = more distant storm origin
+    function getSwellOrigin(direction, period) {
+      const dir = getWindName(direction);
+
+      // Estimate distance from period: group velocity ~ 1.56 * period (m/s)
+      // Travel time approximation in hours: distance / (group_velocity * 3.6)
+      const groupVelocity = 1.56 * period; // m/s
+      const estimatedDistKm = Math.round(groupVelocity * 3.6 * period * 2.5); // rough estimate
+
+      // Swell origin regions for Coquimbo based on direction
+      let origin = 'Desconocido';
+      let zone = '';
+
+      if (dir.includes('SW') || dir === 'S' || dir === 'SSW') {
+        if (period >= 14) { origin = 'Oceano Austral / Antartida'; zone = 'Tormentas roaring 40s-50s'; }
+        else if (period >= 10) { origin = 'Pacifico Sur profundo'; zone = 'Sistema frontal lejano'; }
+        else { origin = 'Pacifico Sur cercano'; zone = 'Viento local/regional'; }
+      } else if (dir.includes('W') || dir === 'WNW' || dir === 'WSW') {
+        if (period >= 16) { origin = 'Pacifico Central / Nueva Zelanda'; zone = 'Tormenta trans-oceanica'; }
+        else if (period >= 12) { origin = 'Pacifico Sur-Central'; zone = 'Baja presion extratropical'; }
+        else { origin = 'Pacifico Oriental'; zone = 'Sistema costero'; }
+      } else if (dir.includes('NW') || dir === 'N' || dir === 'NNW') {
+        if (period >= 14) { origin = 'Pacifico Norte / Hawaii'; zone = 'Tormenta hemisferio norte'; }
+        else if (period >= 10) { origin = 'Pacifico Nor-Oriental'; zone = 'Sistema lejano del norte'; }
+        else { origin = 'Costa norte Chile'; zone = 'Viento costero'; }
+      } else {
+        origin = 'Wind swell local';
+        zone = 'Generado por viento local';
+      }
+
+      return { origin, zone, distKm: estimatedDistKm, travelHours: Math.round(estimatedDistKm / (groupVelocity * 3.6)) };
+    }
+
+    // Swell decay estimation: how much energy remains after traveling
+    function getSwellDecay(period, distKm) {
+      // Longer period swells decay less over distance
+      // Decay factor: exp(-distance / (period * decay_constant))
+      const decayConstant = 800; // km per period-second
+      const decay = Math.exp(-distKm / (period * decayConstant));
+      return Math.round(decay * 100);
     }
 
     // Board recommendation based on wave height, period, spot type and wind
@@ -1218,7 +1383,14 @@
     function getDayName(isoStr, i) {
       if (i === 0) return 'Hoy';
       if (i === 1) return 'Mañana';
-      return new Date(isoStr).toLocaleDateString('es-CL', { weekday: 'short' }).replace('.', '');
+      const d = new Date(isoStr);
+      const weekday = d.toLocaleDateString('es-CL', { weekday: 'short' }).replace('.', '');
+      if (i >= 7) {
+        const dayNum = d.getDate();
+        const month = d.toLocaleDateString('es-CL', { month: 'short' }).replace('.', '');
+        return `${weekday} ${dayNum}/${month}`;
+      }
+      return weekday;
     }
 
     // Moon phase calculation
@@ -1422,6 +1594,22 @@
       const swellDir = marine.hourly?.swell_wave_direction?.[currentIdx] ?? 0;
       const swellPeriod = marine.hourly?.swell_wave_period?.[currentIdx] ?? 0;
 
+      // Secondary swell decomposition
+      const swell2Height = marine.hourly?.secondary_swell_wave_height?.[currentIdx] ?? 0;
+      const swell2Dir = marine.hourly?.secondary_swell_wave_direction?.[currentIdx] ?? 0;
+      const swell2Period = marine.hourly?.secondary_swell_wave_period?.[currentIdx] ?? 0;
+
+      // Wind swell = total wave - groundswell components
+      const windSwellHeight = Math.max(0, Math.round((waveHeight - Math.sqrt(swellHeight ** 2 + swell2Height ** 2)) * 10) / 10);
+
+      // Swell ratings
+      const primaryRating = getSwellRating(swellHeight, swellPeriod);
+      const secondaryRating = swell2Height > 0.1 ? getSwellRating(swell2Height, swell2Period) : null;
+      const totalFaceRating = getSwellRating(waveHeight, wavePeriod);
+
+      // Swell origin tracking
+      const swellOrigin = swellPeriod > 0 ? getSwellOrigin(swellDir, swellPeriod) : null;
+
       const temp = weather.current?.temperature_2m ?? 0;
       const windSpeed = weather.current?.windspeed_10m ?? 0;
       const windDir = weather.current?.winddirection_10m ?? 0;
@@ -1487,34 +1675,53 @@
         const wd = weather.hourly?.winddirection_10m?.[i] ?? 0;
         const isNow = i === currentIdx;
         const hScore = getSurfScore(wh, wp, ws, wd);
+        const hRating = getSwellRating(wh, wp);
         hourlyHtml += `
           <div class="hourly-item ${isNow ? 'now' : ''}">
             <div class="hourly-time">${isNow ? 'Ahora' : h + ':00'}</div>
             <div class="hourly-wave" style="color:${getScoreColor(hScore)}">${wh.toFixed(1)}m</div>
             <div class="hourly-period">${wp.toFixed(0)}s</div>
+            <div style="font-size:0.6rem;color:${hRating.color};margin-top:2px">${hRating.face}m cara</div>
             <div class="hourly-wind">${ws.toFixed(0)} km/h ${getWindName(wd)}</div>
             <div><span class="badge ${getScoreBadgeClass(hScore)}" style="font-size:0.6rem;padding:2px 6px">${hScore}</span></div>
           </div>`;
       }
 
-      // Build 7-day forecast
+      // Build 16-day forecast
       let forecastHtml = '';
+      const dailyCount = marine.daily?.time?.length || 0;
       const maxWaveDaily = Math.max(...(marine.daily?.wave_height_max || [1]));
-      for (let i = 0; i < (marine.daily?.time?.length || 0); i++) {
+      for (let i = 0; i < dailyCount; i++) {
+        // Week separator
+        if (i === 7) {
+          forecastHtml += `<div class="forecast-section-label">Semana 2 — Pronostico extendido</div>`;
+        }
+
         const dayWave = marine.daily.wave_height_max?.[i] ?? 0;
         const dayWaveDir = marine.daily.wave_direction_dominant?.[i] ?? 0;
+        const noData = dayWave === 0 && i > 2; // No marine data available for this day
+
+        if (noData) continue; // Skip days without wave data
+
         const barWidth = (dayWave / maxWaveDaily) * 100;
         const dayWindMax = Math.max(...(weather.hourly?.windspeed_10m?.slice(i * 24, (i + 1) * 24) || [0]));
-        const dayScore = getSurfScore(dayWave, marine.daily.wave_period_max?.[i] ?? 0, dayWindMax, dayWaveDir);
+        const dayPeriod = marine.daily.wave_period_max?.[i] ?? 0;
+        const dayScore = getSurfScore(dayWave, dayPeriod, dayWindMax, dayWaveDir);
+        const dayRating = getSwellRating(dayWave, dayPeriod);
+
+        // Swell info for extended days
+        const swellInfo = marine.daily?.swell_wave_height_max?.[i]
+          ? ` · ${marine.daily.swell_wave_height_max[i].toFixed(1)}m@${(marine.daily.swell_wave_period_max?.[i] ?? 0).toFixed(0)}s`
+          : '';
 
         forecastHtml += `
-          <div class="forecast-day">
+          <div class="forecast-day" style="${i >= 7 ? 'opacity:0.75' : ''}">
             <div class="forecast-day-name">${getDayName(marine.daily.time[i], i)} <span class="badge ${getScoreBadgeClass(dayScore)}" style="font-size:0.6rem;padding:1px 5px;margin-left:4px">${dayScore}</span></div>
             <div class="forecast-bar-container">
               <div class="forecast-bar" style="width:${barWidth}%;background:${getScoreColor(dayScore)}"></div>
             </div>
-            <div class="forecast-wave">${dayWave.toFixed(1)} m</div>
-            <div class="forecast-wind">${getWindName(dayWaveDir)} ${dayWindMax.toFixed(0)}km/h</div>
+            <div class="forecast-wave">${dayWave.toFixed(1)} m <span style="font-size:0.65rem;color:${dayRating.color}">${dayRating.rating}</span></div>
+            <div class="forecast-wind">${getWindName(dayWaveDir)} ${dayWindMax > 0 ? dayWindMax.toFixed(0) + 'km/h' : '--'}${swellInfo}</div>
           </div>`;
       }
 
@@ -1594,24 +1801,46 @@
             <div class="card">
               <div class="card-header">
                 <div class="card-icon" style="background:rgba(0,212,255,0.15)">🌊</div>
-                <div class="card-title">Oleaje Actual</div>
+                <div class="card-title">Oleaje & Swell</div>
               </div>
-              <div style="text-align:center;margin-bottom:14px">
+              <div style="text-align:center;margin-bottom:8px">
                 <span class="metric-big" style="color:var(--surf-cyan)">${waveHeight.toFixed(1)}</span>
                 <span class="metric-unit">m</span>
+                <span class="metric-unit" style="margin-left:8px">${wavePeriod.toFixed(0)}s ${waveDirName}</span>
               </div>
-              <div class="metric-row">
-                <span class="metric-label">Periodo</span>
-                <span class="metric-value">${wavePeriod.toFixed(0)} <span class="metric-unit">seg</span></span>
+              <div style="text-align:center">
+                <div class="swell-face" style="color:${totalFaceRating.color}">
+                  <span class="swell-face-label">Cara de ola:</span>
+                  <span class="swell-face-value" style="color:${totalFaceRating.color}">${totalFaceRating.face}m</span>
+                  <span style="font-size:0.7rem;font-weight:700;color:${totalFaceRating.color}">${totalFaceRating.rating}</span>
+                  <span style="font-size:0.65rem">${'★'.repeat(totalFaceRating.stars)}${'☆'.repeat(5 - totalFaceRating.stars)}</span>
+                </div>
               </div>
-              <div class="metric-row">
-                <span class="metric-label">Direccion</span>
-                <span class="metric-value">${waveDirName} (${waveDir}°)</span>
+              <div class="swell-decomp">
+                <div class="swell-decomp-title">Descomposicion de Swell</div>
+                <div class="swell-component primary">
+                  <span class="swell-comp-label">Primario</span>
+                  <span class="swell-comp-data">${swellHeight.toFixed(1)}m @ ${swellPeriod.toFixed(0)}s ${getWindName(swellDir)}</span>
+                  <span class="swell-comp-rating" style="background:${primaryRating.color}20;color:${primaryRating.color}">${primaryRating.face}m cara</span>
+                </div>
+                ${swell2Height > 0.1 ? `
+                <div class="swell-component secondary">
+                  <span class="swell-comp-label">Secundario</span>
+                  <span class="swell-comp-data">${swell2Height.toFixed(1)}m @ ${swell2Period.toFixed(0)}s ${getWindName(swell2Dir)}</span>
+                  <span class="swell-comp-rating" style="background:${secondaryRating.color}20;color:${secondaryRating.color}">${secondaryRating.face}m cara</span>
+                </div>` : ''}
+                ${windSwellHeight > 0.1 ? `
+                <div class="swell-component wind-swell">
+                  <span class="swell-comp-label">Wind swell</span>
+                  <span class="swell-comp-data">${windSwellHeight.toFixed(1)}m (viento local)</span>
+                  <span class="swell-comp-rating" style="background:var(--surf-yellow)20;color:var(--surf-yellow)">chop</span>
+                </div>` : ''}
               </div>
-              <div class="metric-row">
-                <span class="metric-label">Swell</span>
-                <span class="metric-value">${swellHeight.toFixed(1)}m @ ${swellPeriod.toFixed(0)}s ${getWindName(swellDir)}</span>
-              </div>
+              ${swellOrigin ? `
+              <div class="swell-origin">
+                <span class="swell-origin-label">Origen:</span> ${swellOrigin.origin}
+                <br><span style="color:rgba(255,255,255,0.35)">${swellOrigin.zone} · ~${swellOrigin.distKm.toLocaleString()}km · ${swellOrigin.travelHours}h viaje · ${getSwellDecay(swellPeriod, swellOrigin.distKm)}% energia</span>
+              </div>` : ''}
             </div>
 
             <!-- Viento -->
@@ -1763,7 +1992,7 @@
             <div class="card card-full">
               <div class="card-header">
                 <div class="card-icon" style="background:rgba(6,214,160,0.15)">📅</div>
-                <div class="card-title">Pronostico 7 Dias - ${currentSpot}</div>
+                <div class="card-title">Pronostico 16 Dias - ${currentSpot}</div>
               </div>
               ${forecastHtml}
             </div>
