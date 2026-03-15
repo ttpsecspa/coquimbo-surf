@@ -819,6 +819,106 @@
 
     .share-btn:hover { border-color: var(--surf-cyan); transform: scale(1.1); }
 
+    /* Traffic / Como llegar */
+    .traffic-section {
+      margin-top: 12px;
+      padding: 14px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .traffic-title {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+
+    .traffic-routes {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .traffic-route {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      font-size: 0.8rem;
+    }
+
+    .traffic-route-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .traffic-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .traffic-dot.green { background: var(--surf-green); }
+    .traffic-dot.yellow { background: var(--surf-yellow); }
+    .traffic-dot.red { background: var(--surf-red); }
+
+    .traffic-time {
+      font-weight: 700;
+      color: var(--white);
+    }
+
+    .traffic-alert {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+    }
+
+    .traffic-alert.warn {
+      background: rgba(255,209,102,0.1);
+      border: 1px solid rgba(255,209,102,0.15);
+      color: var(--surf-yellow);
+    }
+
+    .traffic-alert.ok {
+      background: rgba(6,214,160,0.08);
+      border: 1px solid rgba(6,214,160,0.12);
+      color: var(--surf-green);
+    }
+
+    .traffic-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      padding: 8px 16px;
+      background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(0,180,216,0.1));
+      border: 1px solid rgba(0,212,255,0.2);
+      border-radius: 10px;
+      color: var(--surf-cyan);
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+
+    .traffic-btn:hover {
+      background: linear-gradient(135deg, rgba(0,212,255,0.25), rgba(0,180,216,0.15));
+      transform: translateY(-1px);
+    }
+
     /* Auto-refresh indicator */
     .auto-refresh {
       display: flex;
@@ -919,10 +1019,26 @@
   <script>
     // ========== CONFIG ==========
     const SPOTS = {
-      'Totoralillo': { lat: -30.0718, lon: -71.3768, facing: 'W', bestWind: 'ENE', bestSwell: 'WSW', type: 'point break', waveRange: '1.0-2.5m+', level: 'Intermedio-Avanzado', desc: 'Peninsula con 3 point breaks (Pipe, El Muro, Derecharcha): 2 derechas y 1 izquierda. Olas huecas y potentes sobre fondo de roca. Mejor Mar-Jun. Cuidado: erizos y rocas.', hazards: 'Erizos, rocas, secciones poco profundas' },
-      'Punta de Choros': { lat: -29.2430, lon: -71.4652, facing: 'W', bestWind: 'ESE', bestSwell: 'SW', type: 'beach break', waveRange: '1.0-2.5m', level: 'Todos', desc: 'Beach break protegido con izquierdas y derechas sobre arena y rocas. Poco crowd, vacio entre semana. Mejor en otono-invierno (mayo). 500m norte de la caleta.', hazards: 'Corrientes, rocas' },
-      'El Faro': { lat: -29.9055, lon: -71.2761, facing: 'WNW', bestWind: 'ESE', bestSwell: 'SW', type: 'beach break', waveRange: '0.3-1.5m', level: 'Principiante-Intermedio', desc: 'Beach break junto al Faro Monumental en Av. del Mar. Picos A-frame pero frecuentes cierres. El mas consistente de las 12 playas de La Serena. Ideal para aprender.', hazards: 'Cierres frecuentes, corrientes' },
-      'Tongoy': { lat: -30.2611, lon: -71.4939, facing: 'N', bestWind: 'S', bestSwell: 'NW', type: 'beach break', waveRange: '0.3-1.0m', level: 'Principiante', desc: 'Bahia protegida por Punta Lengua de Vaca. Playa Grande (26km) con olas chicas y suaves. Ideal para SUP, bodyboard y principiantes absolutos. Pueblo pesquero turistico.', hazards: 'Minimos - playa segura' },
+      'Totoralillo': { lat: -30.0718, lon: -71.3768, facing: 'W', bestWind: 'ENE', bestSwell: 'WSW', type: 'point break', waveRange: '1.0-2.5m+', level: 'Intermedio-Avanzado', desc: 'Peninsula con 3 point breaks (Pipe, El Muro, Derecharcha): 2 derechas y 1 izquierda. Olas huecas y potentes sobre fondo de roca. Mejor Mar-Jun. Cuidado: erizos y rocas.', hazards: 'Erizos, rocas, secciones poco profundas',
+        routes: [
+          { from: 'La Serena', km: 47, minNormal: 45, minPeak: 70, road: 'Ruta 5 + camino costero' },
+          { from: 'Coquimbo', km: 30, minNormal: 35, minPeak: 55, road: 'Ruta 5 Sur + desvio' },
+        ]},
+      'Punta de Choros': { lat: -29.2430, lon: -71.4652, facing: 'W', bestWind: 'ESE', bestSwell: 'SW', type: 'beach break', waveRange: '1.0-2.5m', level: 'Todos', desc: 'Beach break protegido con izquierdas y derechas sobre arena y rocas. Poco crowd, vacio entre semana. Mejor en otono-invierno (mayo). 500m norte de la caleta.', hazards: 'Corrientes, rocas',
+        routes: [
+          { from: 'La Serena', km: 114, minNormal: 105, minPeak: 130, road: 'Ruta 5 Norte + camino ripio' },
+          { from: 'Coquimbo', km: 130, minNormal: 115, minPeak: 140, road: 'Ruta 5 Norte + camino ripio' },
+        ]},
+      'El Faro': { lat: -29.9055, lon: -71.2761, facing: 'WNW', bestWind: 'ESE', bestSwell: 'SW', type: 'beach break', waveRange: '0.3-1.5m', level: 'Principiante-Intermedio', desc: 'Beach break junto al Faro Monumental en Av. del Mar. Picos A-frame pero frecuentes cierres. El mas consistente de las 12 playas de La Serena. Ideal para aprender.', hazards: 'Cierres frecuentes, corrientes',
+        routes: [
+          { from: 'La Serena', km: 5, minNormal: 8, minPeak: 20, road: 'Av. del Mar' },
+          { from: 'Coquimbo', km: 12, minNormal: 15, minPeak: 30, road: 'Ruta Interbalnearia' },
+        ]},
+      'Tongoy': { lat: -30.2611, lon: -71.4939, facing: 'N', bestWind: 'S', bestSwell: 'NW', type: 'beach break', waveRange: '0.3-1.0m', level: 'Principiante', desc: 'Bahia protegida por Punta Lengua de Vaca. Playa Grande (26km) con olas chicas y suaves. Ideal para SUP, bodyboard y principiantes absolutos. Pueblo pesquero turistico.', hazards: 'Minimos - playa segura',
+        routes: [
+          { from: 'La Serena', km: 56, minNormal: 50, minPeak: 80, road: 'Ruta 5 Sur + Ruta D-500' },
+          { from: 'Coquimbo', km: 40, minNormal: 40, minPeak: 65, road: 'Ruta 5 Sur + Ruta D-500' },
+        ]},
     };
 
     let currentSpot = 'Totoralillo';
@@ -1230,6 +1346,74 @@
       const decayConstant = 800; // km per period-second
       const decay = Math.exp(-distKm / (period * decayConstant));
       return Math.round(decay * 100);
+    }
+
+    // ========== TRAFFIC ESTIMATION ==========
+    // Estimates traffic level based on day of week, time of day, and season
+    function getTrafficEstimate(spot) {
+      const now = new Date();
+      const hour = now.getHours();
+      const dayOfWeek = now.getDay(); // 0=Sun, 6=Sat
+      const month = now.getMonth(); // 0=Jan
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+      const isFriday = dayOfWeek === 5;
+      const isSummer = month === 0 || month === 1 || month === 11; // Dec-Feb
+      const isHolidaySeason = (month === 0 || month === 1); // Jan-Feb peak
+
+      // Peak hours: Fri 16-20, Sat 8-12, Sun 16-20 (return)
+      const isFridayEvening = isFriday && hour >= 16 && hour <= 20;
+      const isSatMorning = dayOfWeek === 6 && hour >= 8 && hour <= 12;
+      const isSunReturn = dayOfWeek === 0 && hour >= 15 && hour <= 20;
+
+      let level = 'low'; // green
+      let message = 'Ruta despejada';
+      let isPeak = false;
+
+      if (isHolidaySeason && (isWeekend || isFriday)) {
+        level = 'high';
+        message = 'Temporada alta + fin de semana = mucho taco';
+        isPeak = true;
+      } else if (isFridayEvening) {
+        level = 'high';
+        message = 'Viernes por la tarde = salida masiva de Santiago/ciudades';
+        isPeak = true;
+      } else if (isSunReturn) {
+        level = 'high';
+        message = 'Domingo tarde = retorno a la ciudad, taco en Ruta 5';
+        isPeak = true;
+      } else if (isSatMorning) {
+        level = 'medium';
+        message = 'Sabado temprano = trafico moderado hacia la costa';
+        isPeak = true;
+      } else if (isSummer && isWeekend) {
+        level = 'medium';
+        message = 'Verano + fin de semana = trafico moderado';
+        isPeak = true;
+      } else if (isWeekend) {
+        level = 'medium';
+        message = 'Fin de semana = algo mas de trafico';
+      } else if (hour >= 7 && hour <= 9) {
+        level = 'low';
+        message = 'Temprano entre semana = ruta despejada, ideal';
+      } else {
+        level = 'low';
+        message = 'Trafico fluido, buen momento para ir';
+      }
+
+      // Build routes with estimated times
+      const routes = (spot.routes || []).map(r => ({
+        ...r,
+        estMin: isPeak ? r.minPeak : r.minNormal,
+        trafficLevel: level
+      }));
+
+      return { level, message, isPeak, routes, isWeekend, isSummer };
+    }
+
+    function getTrafficDotClass(level) {
+      if (level === 'high') return 'red';
+      if (level === 'medium') return 'yellow';
+      return 'green';
     }
 
     // Board recommendation based on wave height, period, spot type and wind
@@ -1969,6 +2153,42 @@
                 <div class="card-title">Mareas (estimacion) &mdash; ${moon.emoji} ${moon.effect}</div>
               </div>
               <canvas id="tide-chart" class="tide-canvas"></canvas>
+            </div>
+
+            <!-- Trafico / Como llegar -->
+            <div class="card card-full">
+              <div class="card-header">
+                <div class="card-icon" style="background:rgba(255,209,102,0.15)">🚗</div>
+                <div class="card-title">Como Llegar &mdash; Trafico Estimado</div>
+              </div>
+              ${(() => {
+                const traffic = getTrafficEstimate(spot);
+                let html = '<div class="traffic-routes">';
+                traffic.routes.forEach(r => {
+                  const dotClass = getTrafficDotClass(traffic.level);
+                  html += `
+                    <div class="traffic-route">
+                      <div class="traffic-route-info">
+                        <div class="traffic-dot ${dotClass}"></div>
+                        <span style="color:rgba(255,255,255,0.6)">Desde <strong style="color:#fff">${r.from}</strong></span>
+                      </div>
+                      <div style="display:flex;align-items:center;gap:10px">
+                        <span style="font-size:0.7rem;color:rgba(255,255,255,0.35)">${r.km}km · ${r.road}</span>
+                        <span class="traffic-time">~${r.estMin} min</span>
+                      </div>
+                    </div>`;
+                });
+                html += '</div>';
+                html += `<div class="traffic-alert ${traffic.level === 'low' ? 'ok' : 'warn'}">
+                  ${traffic.level === 'high' ? '🔴' : traffic.level === 'medium' ? '🟡' : '🟢'} ${traffic.message}
+                </div>`;
+                html += `<div style="text-align:center">
+                  <a class="traffic-btn" href="https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lon}&travelmode=driving" target="_blank" rel="noopener">
+                    🗺️ Abrir en Google Maps (trafico real)
+                  </a>
+                </div>`;
+                return html;
+              })()}
             </div>
           </div>
         </div>
