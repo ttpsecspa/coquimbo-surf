@@ -1174,7 +1174,7 @@
       📲 Instalar SurfCoquimbo en tu dispositivo
     </div>
 
-    <div id="quake-alert-container"></div>
+    <div id="quake-critical-banner"></div>
     <div class="alert-banner" id="alert-banner"></div>
 
     <div class="spot-selector" id="spot-selector">
@@ -1415,11 +1415,12 @@
     }
 
     function renderEarthquakeAlert() {
-      const container = document.getElementById('quake-alert-container');
-      if (!container) return;
+      const criticalBanner = document.getElementById('quake-critical-banner');
+      const miniCard = document.getElementById('quake-mini-card');
 
       if (!earthquakeData?.features?.length) {
-        container.innerHTML = '';
+        if (criticalBanner) criticalBanner.innerHTML = '';
+        if (miniCard) miniCard.innerHTML = '';
         return;
       }
 
@@ -1428,43 +1429,67 @@
       const recent = quakes.filter(q => (now - q.properties.time) < 7 * 24 * 60 * 60 * 1000);
 
       if (!recent.length) {
-        container.innerHTML = '';
+        if (criticalBanner) criticalBanner.innerHTML = '';
+        if (miniCard) miniCard.innerHTML = '';
         return;
       }
 
-      // Check for tsunami alerts
       const hasTsunami = recent.some(q => q.properties.tsunami === 1);
       const maxMag = Math.max(...recent.map(q => q.properties.mag));
-      const alertClass = hasTsunami ? 'tsunami' : maxMag >= 5 ? 'quake-major' : 'quake-minor';
-      const alertIcon = hasTsunami ? '🌊⚠️ ALERTA TSUNAMI' : maxMag >= 5 ? '🔴 SISMO SIGNIFICATIVO' : '🟡 ACTIVIDAD SISMICA';
+      const last24h = recent.filter(q => (now - q.properties.time) < 24 * 60 * 60 * 1000);
+      const isCritical = hasTsunami || maxMag >= 6;
 
-      let quakeListHtml = '';
-      recent.slice(0, 5).forEach(q => {
-        const mag = q.properties.mag;
-        const place = q.properties.place || 'Desconocido';
-        const timeAgo = getTimeAgo(q.properties.time);
-        const depth = q.geometry.coordinates[2];
-        const magClass = mag >= 5 ? 'mag-high' : mag >= 4 ? 'mag-med' : 'mag-low';
-        const magColor = mag >= 5 ? 'var(--surf-red)' : mag >= 4 ? 'var(--surf-orange)' : 'var(--surf-yellow)';
+      // === CRITICAL BANNER: Only for tsunami or M6+ ===
+      if (criticalBanner) {
+        if (isCritical) {
+          const alertClass = hasTsunami ? 'tsunami' : 'quake-major';
+          const alertIcon = hasTsunami ? '🌊⚠️ ALERTA TSUNAMI — EVACUA ZONA COSTERA' : `🔴 SISMO M${maxMag.toFixed(1)} en la region — Precaucion en la costa`;
+          criticalBanner.innerHTML = `
+            <div class="quake-alert ${alertClass}" style="text-align:center">
+              <div style="font-weight:700;font-size:0.95rem">${alertIcon}</div>
+              ${hasTsunami ? '<div style="margin-top:6px;font-size:0.8rem">Sigue instrucciones de SHOA/ONEMI — No entrar al agua</div>' : '<div style="margin-top:4px;font-size:0.75rem">Revisa estado del mar antes de entrar</div>'}
+            </div>`;
+        } else {
+          criticalBanner.innerHTML = '';
+        }
+      }
 
-        quakeListHtml += `
-          <div class="quake-item ${magClass}">
-            <div class="quake-mag" style="color:${magColor}">${mag.toFixed(1)}</div>
-            <div class="quake-info">
-              <div class="quake-place">${place}</div>
-              <div class="quake-time-ago">${timeAgo}</div>
+      // === MINI CARD: Compact seismic activity at bottom of dashboard ===
+      if (miniCard) {
+        let quakeListHtml = '';
+        recent.slice(0, 3).forEach(q => {
+          const mag = q.properties.mag;
+          const place = (q.properties.place || 'Desconocido').replace(/^[\d.]+ km \w+ of /, '');
+          const timeAgo = getTimeAgo(q.properties.time);
+          const depth = q.geometry.coordinates[2];
+          const magColor = mag >= 5 ? 'var(--surf-red)' : mag >= 4 ? 'var(--surf-orange)' : 'var(--surf-yellow)';
+
+          quakeListHtml += `
+            <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+              <span style="font-weight:800;font-size:0.9rem;color:${magColor};min-width:32px;text-align:center">${mag.toFixed(1)}</span>
+              <span style="flex:1;font-size:0.7rem;color:rgba(255,255,255,0.5)">${place}</span>
+              <span style="font-size:0.65rem;color:rgba(255,255,255,0.3)">${depth.toFixed(0)}km · ${timeAgo}</span>
+            </div>`;
+        });
+
+        const statusColor = maxMag >= 5 ? 'var(--surf-red)' : maxMag >= 4 ? 'var(--surf-orange)' : 'var(--surf-green)';
+        const statusText = maxMag >= 5 ? 'Actividad alta' : maxMag >= 4 ? 'Actividad moderada' : 'Actividad normal';
+
+        miniCard.innerHTML = `
+          <div class="card card-full" style="padding:16px 20px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:1rem">🔔</span>
+                <span style="font-size:0.7rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;font-weight:600">Sismos Region</span>
+              </div>
+              <span class="badge" style="background:${statusColor}20;color:${statusColor};font-size:0.6rem">${statusText}</span>
             </div>
-            <div class="quake-depth">${depth.toFixed(0)}km prof.</div>
+            ${quakeListHtml}
+            <div style="text-align:center;margin-top:6px">
+              <a href="https://www.sismologia.cl/" target="_blank" rel="noopener" style="font-size:0.65rem;color:var(--surf-cyan);text-decoration:none">CSN Chile — Ver mas sismos</a>
+            </div>
           </div>`;
-      });
-
-      container.innerHTML = `
-        <div class="quake-alert ${alertClass}">
-          <div style="font-weight:700;font-size:0.9rem;margin-bottom:4px">${alertIcon}</div>
-          <div style="font-size:0.75rem;margin-bottom:8px">${recent.length} sismo${recent.length > 1 ? 's' : ''} reciente${recent.length > 1 ? 's' : ''} en la Region de Coquimbo (M${maxMag.toFixed(1)} max)</div>
-          <div class="quake-list">${quakeListHtml}</div>
-          ${hasTsunami ? '<div style="margin-top:10px;font-weight:700;font-size:0.85rem;color:var(--surf-red)">⚠️ EVACUA ZONA COSTERA - Sigue instrucciones de SHOA/ONEMI</div>' : ''}
-        </div>`;
+      }
     }
 
     function getTimeAgo(timestamp) {
@@ -2654,8 +2679,9 @@
               })()}
             </div>
 
-            <!-- Extra cards: Air Quality + Golden Hour (loaded async) -->
+            <!-- Extra cards: Air Quality + Golden Hour + Sismos (loaded async) -->
             <div id="extra-cards"></div>
+            <div id="quake-mini-card"></div>
           </div>
         </div>
 
