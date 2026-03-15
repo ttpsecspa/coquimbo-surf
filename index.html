@@ -919,6 +919,191 @@
       transform: translateY(-1px);
     }
 
+    /* Earthquake/Tsunami alert */
+    .quake-alert {
+      margin: 10px 0;
+      padding: 14px 18px;
+      border-radius: 12px;
+      animation: fadeIn 0.5s;
+    }
+
+    .quake-alert.tsunami {
+      background: rgba(239,71,111,0.2);
+      border: 2px solid rgba(239,71,111,0.5);
+      color: var(--surf-red);
+    }
+
+    .quake-alert.quake-major {
+      background: rgba(255,140,66,0.15);
+      border: 1px solid rgba(255,140,66,0.3);
+      color: var(--surf-orange);
+    }
+
+    .quake-alert.quake-minor {
+      background: rgba(255,209,102,0.1);
+      border: 1px solid rgba(255,209,102,0.2);
+      color: var(--surf-yellow);
+    }
+
+    .quake-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .quake-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      font-size: 0.8rem;
+      border-left: 3px solid;
+    }
+
+    .quake-item.mag-high { border-left-color: var(--surf-red); }
+    .quake-item.mag-med { border-left-color: var(--surf-orange); }
+    .quake-item.mag-low { border-left-color: var(--surf-yellow); }
+
+    .quake-mag {
+      font-size: 1.2rem;
+      font-weight: 800;
+      min-width: 45px;
+      text-align: center;
+    }
+
+    .quake-info {
+      flex: 1;
+      margin: 0 10px;
+    }
+
+    .quake-place {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .quake-time-ago {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.35);
+    }
+
+    .quake-depth {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.4);
+      text-align: right;
+    }
+
+    /* Air quality */
+    .aqi-bar {
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.08);
+      margin-top: 4px;
+      overflow: hidden;
+    }
+
+    .aqi-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 1s ease;
+    }
+
+    .aqi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .aqi-item {
+      padding: 10px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .aqi-item-value {
+      font-size: 1.3rem;
+      font-weight: 800;
+    }
+
+    .aqi-item-label {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.4);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* Golden hour */
+    .golden-hour-bar {
+      display: flex;
+      align-items: center;
+      height: 32px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 10px 0;
+      position: relative;
+    }
+
+    .golden-segment {
+      height: 100%;
+      position: relative;
+    }
+
+    .golden-now-marker {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--white);
+      z-index: 2;
+    }
+
+    .golden-now-marker::after {
+      content: 'AHORA';
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.55rem;
+      color: var(--white);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .golden-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.3);
+      margin-top: 4px;
+    }
+
+    .golden-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .golden-badge.active {
+      background: rgba(255,209,102,0.15);
+      border: 1px solid rgba(255,209,102,0.25);
+      color: var(--surf-yellow);
+      animation: pulse 2s infinite;
+    }
+
+    .golden-badge.inactive {
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.4);
+    }
+
     /* Auto-refresh indicator */
     .auto-refresh {
       display: flex;
@@ -989,6 +1174,7 @@
       📲 Instalar SurfCoquimbo en tu dispositivo
     </div>
 
+    <div id="quake-alert-container"></div>
     <div class="alert-banner" id="alert-banner"></div>
 
     <div class="spot-selector" id="spot-selector">
@@ -1166,6 +1352,9 @@
         renderDashboard(marine, weather);
         startAutoRefresh();
 
+        // Fetch extra data in background (earthquakes, air quality)
+        fetchExtraData(lat, lon);
+
         // Fetch other spots in background for compare tab
         fetchOtherSpots();
       } catch (err) {
@@ -1184,6 +1373,280 @@
           allSpotsData[name] = { marine: await mRes.json(), weather: await wRes.json() };
         } catch (e) {}
       }
+    }
+
+    // ========== EXTRA DATA (Earthquakes, Air Quality, Golden Hour) ==========
+    let earthquakeData = null;
+    let airQualityData = null;
+
+    async function fetchExtraData(lat, lon) {
+      // Fetch all extra APIs in parallel
+      const promises = [];
+
+      // 1. USGS Earthquakes - last 7 days, M2.5+ within 500km of Coquimbo region
+      promises.push(
+        fetch(`https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minlatitude=-33&maxlatitude=-27&minlongitude=-74&maxlongitude=-69&minmagnitude=2.5&orderby=time&limit=10`)
+          .then(r => r.json())
+          .then(data => { earthquakeData = data; })
+          .catch(() => { earthquakeData = null; })
+      );
+
+      // 2. Open-Meteo Air Quality
+      promises.push(
+        fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,uv_index,european_aqi&timezone=America/Santiago`)
+          .then(r => r.json())
+          .then(data => { airQualityData = data; })
+          .catch(() => { airQualityData = null; })
+      );
+
+      await Promise.all(promises);
+
+      // Re-render with extra data
+      if (currentData) {
+        renderExtraCards();
+      }
+    }
+
+    function renderExtraCards() {
+      // Earthquake alert banner
+      renderEarthquakeAlert();
+      // Air quality + golden hour cards (appended to tab-ahora grid)
+      renderExtraGrid();
+    }
+
+    function renderEarthquakeAlert() {
+      const container = document.getElementById('quake-alert-container');
+      if (!container) return;
+
+      if (!earthquakeData?.features?.length) {
+        container.innerHTML = '';
+        return;
+      }
+
+      const quakes = earthquakeData.features;
+      const now = Date.now();
+      const recent = quakes.filter(q => (now - q.properties.time) < 7 * 24 * 60 * 60 * 1000);
+
+      if (!recent.length) {
+        container.innerHTML = '';
+        return;
+      }
+
+      // Check for tsunami alerts
+      const hasTsunami = recent.some(q => q.properties.tsunami === 1);
+      const maxMag = Math.max(...recent.map(q => q.properties.mag));
+      const alertClass = hasTsunami ? 'tsunami' : maxMag >= 5 ? 'quake-major' : 'quake-minor';
+      const alertIcon = hasTsunami ? '🌊⚠️ ALERTA TSUNAMI' : maxMag >= 5 ? '🔴 SISMO SIGNIFICATIVO' : '🟡 ACTIVIDAD SISMICA';
+
+      let quakeListHtml = '';
+      recent.slice(0, 5).forEach(q => {
+        const mag = q.properties.mag;
+        const place = q.properties.place || 'Desconocido';
+        const timeAgo = getTimeAgo(q.properties.time);
+        const depth = q.geometry.coordinates[2];
+        const magClass = mag >= 5 ? 'mag-high' : mag >= 4 ? 'mag-med' : 'mag-low';
+        const magColor = mag >= 5 ? 'var(--surf-red)' : mag >= 4 ? 'var(--surf-orange)' : 'var(--surf-yellow)';
+
+        quakeListHtml += `
+          <div class="quake-item ${magClass}">
+            <div class="quake-mag" style="color:${magColor}">${mag.toFixed(1)}</div>
+            <div class="quake-info">
+              <div class="quake-place">${place}</div>
+              <div class="quake-time-ago">${timeAgo}</div>
+            </div>
+            <div class="quake-depth">${depth.toFixed(0)}km prof.</div>
+          </div>`;
+      });
+
+      container.innerHTML = `
+        <div class="quake-alert ${alertClass}">
+          <div style="font-weight:700;font-size:0.9rem;margin-bottom:4px">${alertIcon}</div>
+          <div style="font-size:0.75rem;margin-bottom:8px">${recent.length} sismo${recent.length > 1 ? 's' : ''} reciente${recent.length > 1 ? 's' : ''} en la Region de Coquimbo (M${maxMag.toFixed(1)} max)</div>
+          <div class="quake-list">${quakeListHtml}</div>
+          ${hasTsunami ? '<div style="margin-top:10px;font-weight:700;font-size:0.85rem;color:var(--surf-red)">⚠️ EVACUA ZONA COSTERA - Sigue instrucciones de SHOA/ONEMI</div>' : ''}
+        </div>`;
+    }
+
+    function getTimeAgo(timestamp) {
+      const diff = Date.now() - timestamp;
+      const mins = Math.floor(diff / 60000);
+      if (mins < 60) return `hace ${mins} min`;
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return `hace ${hours}h`;
+      const days = Math.floor(hours / 24);
+      return `hace ${days}d`;
+    }
+
+    function renderExtraGrid() {
+      const container = document.getElementById('extra-cards');
+      if (!container) return;
+
+      let html = '';
+
+      // Air Quality card
+      if (airQualityData?.current) {
+        const aqi = airQualityData.current;
+        const aqiValue = aqi.european_aqi ?? 0;
+        const pm25 = aqi.pm2_5 ?? 0;
+        const pm10 = aqi.pm10 ?? 0;
+        const ozone = aqi.ozone ?? 0;
+        const uvIdx = aqi.uv_index ?? 0;
+
+        let aqiLabel, aqiColor, aqiEmoji;
+        if (aqiValue <= 20) { aqiLabel = 'Excelente'; aqiColor = 'var(--surf-green)'; aqiEmoji = '🟢'; }
+        else if (aqiValue <= 40) { aqiLabel = 'Buena'; aqiColor = 'var(--surf-teal)'; aqiEmoji = '🟢'; }
+        else if (aqiValue <= 60) { aqiLabel = 'Moderada'; aqiColor = 'var(--surf-yellow)'; aqiEmoji = '🟡'; }
+        else if (aqiValue <= 80) { aqiLabel = 'Mala'; aqiColor = 'var(--surf-orange)'; aqiEmoji = '🟠'; }
+        else { aqiLabel = 'Muy mala'; aqiColor = 'var(--surf-red)'; aqiEmoji = '🔴'; }
+
+        const aqiBarWidth = Math.min(100, (aqiValue / 100) * 100);
+
+        // UV detail
+        let uvLabel, uvColor;
+        if (uvIdx <= 2) { uvLabel = 'Bajo'; uvColor = 'var(--surf-green)'; }
+        else if (uvIdx <= 5) { uvLabel = 'Moderado'; uvColor = 'var(--surf-yellow)'; }
+        else if (uvIdx <= 7) { uvLabel = 'Alto'; uvColor = 'var(--surf-orange)'; }
+        else if (uvIdx <= 10) { uvLabel = 'Muy alto'; uvColor = 'var(--surf-red)'; }
+        else { uvLabel = 'Extremo'; uvColor = '#ff0000'; }
+
+        html += `
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon" style="background:rgba(6,214,160,0.15)">🌬️</div>
+              <div class="card-title">Calidad del Aire & UV</div>
+            </div>
+            <div style="text-align:center;margin-bottom:8px">
+              <span class="metric-big" style="color:${aqiColor}">${aqiValue}</span>
+              <span class="metric-unit">AQI</span>
+            </div>
+            <div style="text-align:center;margin-bottom:10px">
+              <span class="badge" style="background:${aqiColor}20;color:${aqiColor}">${aqiEmoji} ${aqiLabel}</span>
+            </div>
+            <div class="aqi-bar">
+              <div class="aqi-bar-fill" style="width:${aqiBarWidth}%;background:${aqiColor}"></div>
+            </div>
+            <div class="aqi-grid">
+              <div class="aqi-item">
+                <div class="aqi-item-value" style="color:${pm25 > 25 ? 'var(--surf-orange)' : 'var(--surf-green)'}">${pm25.toFixed(0)}</div>
+                <div class="aqi-item-label">PM2.5 μg/m³</div>
+              </div>
+              <div class="aqi-item">
+                <div class="aqi-item-value" style="color:${pm10 > 50 ? 'var(--surf-orange)' : 'var(--surf-green)'}">${pm10.toFixed(0)}</div>
+                <div class="aqi-item-label">PM10 μg/m³</div>
+              </div>
+              <div class="aqi-item">
+                <div class="aqi-item-value" style="color:${uvColor}">${uvIdx.toFixed(1)}</div>
+                <div class="aqi-item-label">UV ${uvLabel}</div>
+              </div>
+              <div class="aqi-item">
+                <div class="aqi-item-value" style="color:var(--surf-teal)">${ozone.toFixed(0)}</div>
+                <div class="aqi-item-label">Ozono μg/m³</div>
+              </div>
+            </div>
+            <div style="margin-top:8px;font-size:0.7rem;color:rgba(255,255,255,0.3);text-align:center">
+              ${pm25 > 25 ? '⚠️ PM2.5 elevado — considera usar proteccion' : uvIdx > 7 ? '☀️ UV muy alto — usa protector solar SPF50+' : '✅ Aire limpio para surfear'}
+            </div>
+          </div>`;
+      }
+
+      // Golden Hour card
+      if (currentData?.weather?.daily?.sunrise?.[0] && currentData?.weather?.daily?.sunset?.[0]) {
+        const now = new Date();
+        const sunrise = new Date(currentData.weather.daily.sunrise[0]);
+        const sunset = new Date(currentData.weather.daily.sunset[0]);
+
+        // Golden hour = first hour after sunrise, last hour before sunset
+        const goldenMorningStart = new Date(sunrise);
+        const goldenMorningEnd = new Date(sunrise.getTime() + 60 * 60 * 1000);
+        const goldenEveningStart = new Date(sunset.getTime() - 60 * 60 * 1000);
+        const goldenEveningEnd = new Date(sunset);
+
+        // Blue hour = 30min before sunrise, 30min after sunset
+        const blueStart = new Date(sunrise.getTime() - 30 * 60 * 1000);
+        const blueEnd = new Date(sunset.getTime() + 30 * 60 * 1000);
+
+        const isGoldenMorning = now >= goldenMorningStart && now <= goldenMorningEnd;
+        const isGoldenEvening = now >= goldenEveningStart && now <= goldenEveningEnd;
+        const isGolden = isGoldenMorning || isGoldenEvening;
+        const isBlueMorning = now >= blueStart && now < sunrise;
+        const isBlueEvening = now > sunset && now <= blueEnd;
+        const isBlue = isBlueMorning || isBlueEvening;
+
+        const dayMinutes = (sunset - sunrise) / 60000;
+        const nowMinutes = (now - sunrise) / 60000;
+        const nowPercent = Math.max(0, Math.min(100, (nowMinutes / dayMinutes) * 100));
+
+        // Time until next golden hour
+        let nextGolden = '';
+        if (now < goldenMorningStart) {
+          const diff = Math.round((goldenMorningStart - now) / 60000);
+          nextGolden = `Golden hour amanecer en ${diff} min`;
+        } else if (now > goldenMorningEnd && now < goldenEveningStart) {
+          const diff = Math.round((goldenEveningStart - now) / 60000);
+          const hrs = Math.floor(diff / 60);
+          const mins = diff % 60;
+          nextGolden = `Golden hour atardecer en ${hrs}h ${mins}m`;
+        } else if (now > goldenEveningEnd) {
+          nextGolden = 'Golden hour terminada por hoy';
+        }
+
+        const formatHM = d => d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+
+        // Best session recommendation based on light + conditions
+        let sessionTip = '';
+        if (isGolden) sessionTip = '📸 Golden hour AHORA — luz perfecta para fotos y sesion magica';
+        else if (isBlue) sessionTip = '🌌 Blue hour — luz dramatica, agua calma';
+        else if (now < sunrise) sessionTip = '🌙 Pre-dawn — agua generalmente mas calma, menos viento';
+        else if (now.getHours() < 10) sessionTip = '🌅 Mañana temprano — viento suave, agua limpia';
+        else if (now.getHours() < 14) sessionTip = '☀️ Mediodia — mas viento, pero buena visibilidad';
+        else if (now.getHours() < 17) sessionTip = '💨 Tarde — viento onshore tipico, olas mas desordenadas';
+        else sessionTip = '🌇 Atardecer — viento baja, sesion de cierre';
+
+        html += `
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon" style="background:rgba(255,209,102,0.15)">🌅</div>
+              <div class="card-title">Golden Hour & Luz</div>
+            </div>
+            <div style="text-align:center;margin-bottom:12px">
+              ${isGolden ? '<span class="golden-badge active">✨ GOLDEN HOUR ACTIVA</span>' :
+                isBlue ? '<span class="golden-badge active" style="color:var(--surf-cyan);border-color:rgba(0,212,255,0.25);background:rgba(0,212,255,0.1)">🌌 BLUE HOUR</span>' :
+                `<span class="golden-badge inactive">${nextGolden}</span>`}
+            </div>
+            <div class="golden-hour-bar">
+              <div class="golden-segment" style="width:8%;background:rgba(100,100,180,0.3)" title="Blue hour AM"></div>
+              <div class="golden-segment" style="width:8%;background:rgba(255,180,50,0.4)" title="Golden AM"></div>
+              <div class="golden-segment" style="width:68%;background:rgba(255,255,200,0.1)" title="Dia"></div>
+              <div class="golden-segment" style="width:8%;background:rgba(255,150,50,0.4)" title="Golden PM"></div>
+              <div class="golden-segment" style="width:8%;background:rgba(100,100,180,0.3)" title="Blue hour PM"></div>
+              ${(nowPercent > 0 && nowPercent < 100) ? `<div class="golden-now-marker" style="left:${nowPercent}%"></div>` : ''}
+            </div>
+            <div class="golden-labels">
+              <span>${formatHM(blueStart)}</span>
+              <span style="color:var(--surf-yellow)">🌅 ${formatHM(sunrise)}</span>
+              <span>mediodia</span>
+              <span style="color:var(--surf-orange)">🌇 ${formatHM(sunset)}</span>
+              <span>${formatHM(blueEnd)}</span>
+            </div>
+            <div class="metric-row" style="margin-top:10px">
+              <span class="metric-label">Golden AM</span>
+              <span class="metric-value" style="font-size:0.85rem;color:var(--surf-yellow)">${formatHM(goldenMorningStart)} - ${formatHM(goldenMorningEnd)}</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Golden PM</span>
+              <span class="metric-value" style="font-size:0.85rem;color:var(--surf-orange)">${formatHM(goldenEveningStart)} - ${formatHM(goldenEveningEnd)}</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Horas de luz</span>
+              <span class="metric-value" style="font-size:0.85rem">${Math.floor(dayMinutes / 60)}h ${Math.round(dayMinutes % 60)}m</span>
+            </div>
+            <div style="margin-top:8px;padding:8px 10px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:0.75rem;color:rgba(255,255,255,0.5)">
+              ${sessionTip}
+            </div>
+          </div>`;
+      }
+
+      container.innerHTML = html;
     }
 
     // ========== HELPERS ==========
@@ -2190,6 +2653,9 @@
                 return html;
               })()}
             </div>
+
+            <!-- Extra cards: Air Quality + Golden Hour (loaded async) -->
+            <div id="extra-cards"></div>
           </div>
         </div>
 
